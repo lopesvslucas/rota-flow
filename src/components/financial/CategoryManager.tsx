@@ -96,8 +96,7 @@ export function CategoryManager({ onClose }: Props) {
             <span style={labelStyle}>Cor:</span>
             {COLORS.map(c => (
               <button key={c} onClick={() => setColor(c)}
-                className={cn('h-6 w-6 rounded-full transition-all duration-150', color === c && 'ring-2 ring-offset-2')}
-                style={{ backgroundColor: c, ringColor: c, ringOffsetColor: '#1c1c1c' }} />
+                style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: c, border: color === c ? '2px solid #f5f5f5' : '2px solid transparent', outline: color === c ? `2px solid ${c}` : 'none', outlineOffset: 2, cursor: 'pointer', transition: 'all 150ms' }} />
             ))}
           </div>
           <button onClick={handleSave} disabled={!name.trim() || createMutation.isPending}
