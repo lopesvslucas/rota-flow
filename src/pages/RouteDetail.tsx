@@ -48,9 +48,12 @@ export function RouteDetailPage() {
     catch { toast.error('Erro ao atualizar') }
   }
 
-  async function handleConfirmPayment() {
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false)
+
+  async function handleConfirmPayment(alreadyPaidBefore: boolean) {
     if (!company || !user || !route) return
     setConfirmingPayment(true)
+    setShowPaymentPopup(false)
     try {
       const today = new Date().toISOString().split('T')[0]
 
@@ -61,8 +64,8 @@ export function RouteDetailPage() {
         payment_confirmed_at: today,
       })
 
-      // 2. Auto-create a financial transaction (entrada) for the confirmed amount
-      if (route.amount && Number(route.amount) > 0) {
+      // 2. Only create financial transaction if NOT already paid before
+      if (!alreadyPaidBefore && route.amount && Number(route.amount) > 0) {
         await supabase.from('transactions').insert({
           company_id: company.id,
           type: 'entrada',
@@ -74,7 +77,10 @@ export function RouteDetailPage() {
         queryClient.invalidateQueries({ queryKey: ['transactions'] })
       }
 
-      toast.success('Pagamento confirmado e registrado no financeiro!')
+      toast.success(alreadyPaidBefore
+        ? 'Pagamento marcado como confirmado (sem duplicar no financeiro)'
+        : 'Pagamento confirmado e registrado no financeiro!'
+      )
     } catch {
       toast.error('Erro ao confirmar pagamento')
     }
@@ -180,7 +186,7 @@ export function RouteDetailPage() {
                       Confirme o recebimento de {formatCurrency(Number(route.amount))} para registrar no financeiro
                     </p>
                   </div>
-                  <button onClick={handleConfirmPayment} disabled={confirmingPayment}
+                  <button onClick={() => setShowPaymentPopup(true)} disabled={confirmingPayment}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
                       borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 700,
@@ -354,6 +360,50 @@ export function RouteDetailPage() {
           )}
         </div>
       </div>
+      {/* Payment confirmation popup */}
+      {showPaymentPopup && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setShowPaymentPopup(false)}>
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, maxWidth: 440, width: '100%', boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border)' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Confirmar Pagamento</h3>
+              <p style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 6 }}>
+                Esse pagamento de <strong style={{ color: '#22c55e' }}>{formatCurrency(Number(route.amount))}</strong> já foi registrado anteriormente no financeiro?
+              </p>
+            </div>
+            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={() => handleConfirmPayment(true)}
+                style={{ width: '100%', padding: '14px 20px', borderRadius: 10, border: `1px solid var(--color-border)`, background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, transition: 'all 150ms' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b50'; e.currentTarget.style.background = '#f59e0b08' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.background = 'var(--color-bg)' }}
+              >
+                <div style={{ width: 36, height: 36, borderRadius: 9, background: '#f59e0b15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <BadgeCheck style={{ width: 18, height: 18, color: '#f59e0b' }} />
+                </div>
+                <div>
+                  <p style={{ fontWeight: 700 }}>Sim, já foi registrado</p>
+                  <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>Apenas marcar como pago, sem criar nova transação</p>
+                </div>
+              </button>
+              <button onClick={() => handleConfirmPayment(false)}
+                style={{ width: '100%', padding: '14px 20px', borderRadius: 10, border: `1px solid var(--color-border)`, background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, transition: 'all 150ms' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#22c55e50'; e.currentTarget.style.background = '#22c55e08' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.background = 'var(--color-bg)' }}
+              >
+                <div style={{ width: 36, height: 36, borderRadius: 9, background: '#22c55e15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <CircleDollarSign style={{ width: 18, height: 18, color: '#22c55e' }} />
+                </div>
+                <div>
+                  <p style={{ fontWeight: 700 }}>Não, registrar agora</p>
+                  <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>Confirmar e criar entrada de {formatCurrency(Number(route.amount))} no financeiro</p>
+                </div>
+              </button>
+            </div>
+            <div style={{ padding: '12px 24px 20px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowPaymentPopup(false)} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-2)', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }

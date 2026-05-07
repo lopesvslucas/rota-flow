@@ -2,11 +2,11 @@ import { useState, useMemo } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { TransactionModal } from '@/components/financial/TransactionModal'
 import { CategoryManager } from '@/components/financial/CategoryManager'
-import { useTransactions, useCategories, useDeleteTransaction } from '@/hooks/useTransactions'
+import { useTransactions, useCategories, useDeleteTransaction, useUpdateTransaction } from '@/hooks/useTransactions'
 import { formatCurrency, formatDate, formatMonthYear, getMonthDateRange } from '@/lib/formatters'
 import {
   TrendingUp, TrendingDown, Wallet, Plus, Minus, ChevronLeft, ChevronRight,
-  Trash2, Tag, ArrowUpCircle, ArrowDownCircle, Loader2, PackageOpen
+  Trash2, Tag, ArrowUpCircle, ArrowDownCircle, Loader2, PackageOpen, Pencil, X
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -25,12 +25,14 @@ export function FinancialPage() {
   const [fabOpen, setFabOpen] = useState(false)
   const [showCategories, setShowCategories] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [editTx, setEditTx] = useState<import('@/types').Transaction | null>(null)
   const { theme } = useTheme()
   const d = theme === 'dark'
 
   const { data: transactions, isLoading } = useTransactions(month, year)
   const { data: categories } = useCategories()
   const deleteMutation = useDeleteTransaction()
+  const updateTxMutation = useUpdateTransaction()
 
   // Monthly totals
   const monthEntradas = transactions?.filter(t => t.type === 'entrada').reduce((s, t) => s + Number(t.amount), 0) ?? 0
@@ -219,6 +221,9 @@ export function FinancialPage() {
                     <p className={cn('text-[14px] font-bold tabular-nums whitespace-nowrap')} style={{ color: tx.type === 'entrada' ? '#22c55e' : '#ef4444' }}>
                       {tx.type === 'entrada' ? '+' : '-'}{formatCurrency(Number(tx.amount))}
                     </p>
+                    <button onClick={() => setEditTx(tx)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-[6px] text-text-3 hover:text-accent hover:bg-surface-2 transition-all duration-150">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
                     <button onClick={() => setDeleteConfirm(tx.id)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-[6px] text-text-3 hover:text-red hover:bg-surface-2 transition-all duration-150">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -270,6 +275,109 @@ export function FinancialPage() {
           </div>
         </div>
       )}
+
+      {/* Edit transaction modal */}
+      {editTx && (
+        <EditTransactionModal
+          transaction={editTx}
+          categories={categories?.filter(c => c.type === editTx.type) ?? []}
+          onClose={() => setEditTx(null)}
+          onSave={async (categoryId) => {
+            try {
+              await updateTxMutation.mutateAsync({ id: editTx.id, category_id: categoryId })
+              toast.success('Categoria atualizada!')
+              setEditTx(null)
+            } catch { toast.error('Erro ao atualizar') }
+          }}
+          borderColor={borderColor}
+          surfaceBg={surfaceBg}
+        />
+      )}
     </AppLayout>
+  )
+}
+
+function EditTransactionModal({ transaction, categories, onClose, onSave, borderColor, surfaceBg }: {
+  transaction: import('@/types').Transaction
+  categories: import('@/types').FinancialCategory[]
+  onClose: () => void
+  onSave: (categoryId: string | null) => Promise<void>
+  borderColor: string
+  surfaceBg: string
+}) {
+  const [selectedCat, setSelectedCat] = useState<string | null>(transaction.category_id)
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave(selectedCat)
+    setSaving(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <div className="w-full" style={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 14, maxWidth: 440, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div style={{ padding: '20px 24px 16px', borderBottom: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Editar Transação</h3>
+            <p style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 4 }}>
+              {transaction.description || (transaction.type === 'entrada' ? 'Entrada' : 'Saída')} — <span style={{ color: transaction.type === 'entrada' ? '#22c55e' : '#ef4444', fontWeight: 600 }}>{formatCurrency(Number(transaction.amount))}</span>
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', cursor: 'pointer', padding: 4 }}>
+            <X className="h-[18px] w-[18px]" />
+          </button>
+        </div>
+
+        {/* Category selection */}
+        <div style={{ padding: '20px 24px' }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 12 }}>Categoria</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {/* No category option */}
+            <button onClick={() => setSelectedCat(null)}
+              style={{
+                width: '100%', padding: '12px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left',
+                border: `1px solid ${!selectedCat ? '#6366f150' : borderColor}`,
+                background: !selectedCat ? '#6366f108' : 'var(--color-bg)',
+                color: 'var(--color-text)',
+                transition: 'all 150ms',
+              }}
+            >
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#888', flexShrink: 0 }} />
+              Sem categoria
+              {!selectedCat && <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6366f1', fontWeight: 600 }}>✓</span>}
+            </button>
+            {categories.map(cat => (
+              <button key={cat.id} onClick={() => setSelectedCat(cat.id)}
+                style={{
+                  width: '100%', padding: '12px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                  display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left',
+                  border: `1px solid ${selectedCat === cat.id ? '#6366f150' : borderColor}`,
+                  background: selectedCat === cat.id ? '#6366f108' : 'var(--color-bg)',
+                  color: 'var(--color-text)',
+                  transition: 'all 150ms',
+                }}
+              >
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: cat.color, flexShrink: 0 }} />
+                {cat.name}
+                {selectedCat === cat.id && <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6366f1', fontWeight: 600 }}>✓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '16px 24px 20px', borderTop: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ background: 'transparent', border: `1px solid ${borderColor}`, color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+          <button onClick={handleSave} disabled={saving || selectedCat === transaction.category_id}
+            style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: (saving || selectedCat === transaction.category_id) ? 0.5 : 1 }}
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar'}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
