@@ -6,6 +6,7 @@ import { useRoutes } from '@/hooks/useRoutes'
 import { formatCurrency, formatDate } from '@/lib/formatters'
 import { Plus, Truck, CheckCircle2, Clock, XCircle, Loader2, DollarSign, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTheme } from '@/hooks/useTheme'
 import type { RouteStatus } from '@/types'
 
 const statusConfig: Record<RouteStatus, { label: string; badgeClass: string; iconColor: string; iconBg: string; icon: typeof Clock }> = {
@@ -19,12 +20,23 @@ export function RoutesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [showForm, setShowForm] = useState(false)
   const { data: routes, isLoading } = useRoutes({ status: statusFilter || undefined })
+  const { theme } = useTheme()
+  const d = theme === 'dark'
 
   const today = new Date().toISOString().split('T')[0]
   const todayRoutes = routes?.filter(r => r.delivery_date === today).length ?? 0
   const emAndamento = routes?.filter(r => r.status === 'em_andamento').length ?? 0
   const entregues = routes?.filter(r => r.status === 'entregue').length ?? 0
   const faturamento = routes?.filter(r => r.status === 'entregue').reduce((s, r) => s + Number(r.amount ?? 0), 0) ?? 0
+
+  const borderColor = 'var(--color-border)'
+  const surfaceBg = 'var(--color-surface)'
+  const activeBg = d ? '#282828' : '#f0f0f2'
+  const activeBorder = d ? '#383838' : '#ddd'
+  const inactiveText = d ? '#777' : '#888'
+  const hoverBg = d ? '#1f1f1f' : '#f5f5f7'
+  const hoverText = d ? '#bbb' : '#555'
+  const rowBorder = d ? '#303030' : '#e8e8eb'
 
   return (
     <AppLayout title="Rotas">
@@ -37,11 +49,11 @@ export function RoutesPage() {
             { label: 'Concluídas', value: entregues, icon: CheckCircle2, iconColor: '#22c55e', iconBg: '#22c55e20' },
             { label: 'Faturamento', value: formatCurrency(faturamento), icon: DollarSign, iconColor: '#6366f1', iconBg: '#6366f120', isMonetary: true },
           ].map(s => (
-            <div key={s.label} style={{ padding: 20, border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)' }}>
+            <div key={s.label} style={{ padding: 20, border: `1px solid ${borderColor}`, borderRadius: 10, background: surfaceBg }}>
               <div className="flex items-center justify-center rounded-[9px] mb-4" style={{ width: 38, height: 38, background: s.iconBg }}>
                 <s.icon className="h-[18px] w-[18px]" style={{ color: s.iconColor }} />
               </div>
-              <p className="text-[34px] font-extrabold leading-none" style={{ color: 'isMonetary' in s ? s.iconColor : '#f5f5f5' }}>{s.value}</p>
+              <p className="text-[34px] font-extrabold leading-none" style={{ color: 'isMonetary' in s ? s.iconColor : 'var(--color-text)' }}>{s.value}</p>
               <p className="text-[13px] mt-2" style={{ color: 'var(--color-text-2)' }}>{s.label}</p>
             </div>
           ))}
@@ -49,7 +61,7 @@ export function RoutesPage() {
 
         {/* Filter tabs + button */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 4, display: 'inline-flex', gap: 2 }}>
+          <div style={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 10, padding: 4, display: 'inline-flex', gap: 2 }}>
             {[
               { value: '', label: 'Todos' },
               { value: 'pendente', label: 'Pendente' },
@@ -59,11 +71,11 @@ export function RoutesPage() {
             ].map(s => (
               <button key={s.value} onClick={() => setStatusFilter(s.value)}
                 style={statusFilter === s.value
-                  ? { padding: '7px 16px', borderRadius: 7, fontSize: 13, color: 'var(--color-text)', background: '#282828', border: '1px solid #383838', fontWeight: 600, cursor: 'pointer', transition: 'all 150ms', whiteSpace: 'nowrap' as const }
-                  : { padding: '7px 16px', borderRadius: 7, fontSize: 13, color: '#777', background: 'transparent', border: '1px solid transparent', fontWeight: 500, cursor: 'pointer', transition: 'all 150ms', whiteSpace: 'nowrap' as const }
+                  ? { padding: '7px 16px', borderRadius: 7, fontSize: 13, color: 'var(--color-text)', background: activeBg, border: `1px solid ${activeBorder}`, fontWeight: 600, cursor: 'pointer', transition: 'all 150ms', whiteSpace: 'nowrap' as const }
+                  : { padding: '7px 16px', borderRadius: 7, fontSize: 13, color: inactiveText, background: 'transparent', border: '1px solid transparent', fontWeight: 500, cursor: 'pointer', transition: 'all 150ms', whiteSpace: 'nowrap' as const }
                 }
-                onMouseEnter={e => { if (statusFilter !== s.value) { e.currentTarget.style.color = '#bbb'; e.currentTarget.style.background = '#1f1f1f' } }}
-                onMouseLeave={e => { if (statusFilter !== s.value) { e.currentTarget.style.color = '#777'; e.currentTarget.style.background = 'transparent' } }}
+                onMouseEnter={e => { if (statusFilter !== s.value) { e.currentTarget.style.color = hoverText; e.currentTarget.style.background = hoverBg } }}
+                onMouseLeave={e => { if (statusFilter !== s.value) { e.currentTarget.style.color = inactiveText; e.currentTarget.style.background = 'transparent' } }}
               >
                 {s.label}
               </button>
@@ -79,7 +91,7 @@ export function RoutesPage() {
         </div>
 
         {/* Routes list */}
-        <div style={{ border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', overflow: 'hidden' }}>
+        <div style={{ border: `1px solid ${borderColor}`, borderRadius: 10, background: surfaceBg, overflow: 'hidden' }}>
           {isLoading ? (
             <div className="p-10 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>
           ) : !routes?.length ? (
@@ -103,7 +115,7 @@ export function RoutesPage() {
                 return (
                   <Link key={route.id} to={`/rotas/${route.id}`}
                     className="flex items-center gap-3 hover:bg-surface-2 transition-colors duration-150 group"
-                    style={{ padding: '14px 20px', borderBottom: i < routes.length - 1 ? '1px solid #303030' : 'none' }}
+                    style={{ padding: '14px 20px', borderBottom: i < routes.length - 1 ? `1px solid ${rowBorder}` : 'none', textDecoration: 'none' }}
                   >
                     <div className="flex items-center justify-center rounded-[9px] shrink-0" style={{ width: 34, height: 34, background: cfg.iconBg }}>
                       <StatusIcon className="h-4 w-4" style={{ color: cfg.iconColor }} />

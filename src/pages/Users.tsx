@@ -7,7 +7,7 @@ import { getRoleLabel, getRoleBadgeColor } from '@/lib/permissions'
 import { UserPlus, Trash2, Loader2, Shield, X, Users as UsersIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import type { User, UserRole } from '@/types'
+import type { User } from '@/types'
 
 export function UsersPage() {
   const { company, user: currentUser } = useAuth()
@@ -115,8 +115,6 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
   const queryClient = useQueryClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<UserRole>('viewer')
-  const [perms, setPerms] = useState({ financeiro: false, rotas: false, usuarios: false })
   const [loading, setLoading] = useState(false)
 
   async function handleInvite() {
@@ -135,13 +133,13 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
         company_id: companyId,
         email,
         name: email.split('@')[0],
-        role,
-        permissions: perms,
+        role: 'admin',
+        permissions: { financeiro: true, rotas: true, usuarios: true },
       })
       if (error) throw error
 
       queryClient.invalidateQueries({ queryKey: ['company-users'] })
-      toast.success(`Convite criado! O usuário deve se cadastrar com o email: ${email} e a senha: ${password}`)
+      toast.success(`Convite criado! O usuário deve se cadastrar com o email: ${email}`)
       onClose()
     } catch (err: any) { toast.error(err?.message || 'Erro ao convidar') }
     setLoading(false)
@@ -165,25 +163,16 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" style={inputStyle} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={labelStyle}>Senha inicial</label>
+            <label style={labelStyle}>Senha de acesso</label>
             <input type="text" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" style={inputStyle} />
+            <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>O usuário usará essa senha para fazer o primeiro login</p>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={labelStyle}>Função</label>
-            <select value={role} onChange={e => setRole(e.target.value as UserRole)} style={inputStyle}>
-              <option value="admin">Administrador</option>
-              <option value="driver">Motorista</option>
-              <option value="viewer">Visualizador</option>
-            </select>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <label style={labelStyle}>Permissões</label>
-            {(['financeiro', 'rotas', 'usuarios'] as const).map(p => (
-              <label key={p} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--color-text)', cursor: 'pointer', padding: '2px 0' }}>
-                <input type="checkbox" checked={perms[p]} onChange={e => setPerms(prev => ({ ...prev, [p]: e.target.checked }))} style={{ width: 16, height: 16, accentColor: '#6366f1', borderRadius: 4 }} />
-                {p === 'financeiro' ? 'Financeiro' : p === 'rotas' ? 'Rotas' : 'Gerenciar Usuários'}
-              </label>
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#6366f110', borderRadius: 8, border: '1px solid #6366f130' }}>
+            <Shield className="h-4 w-4" style={{ color: '#6366f1', flexShrink: 0 }} />
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>Administrador</p>
+              <p style={{ fontSize: 11, color: 'var(--color-text-2)' }}>Acesso total: financeiro, rotas e usuários</p>
+            </div>
           </div>
         </div>
 
@@ -192,8 +181,8 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
           <button onClick={onClose} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             Cancelar
           </button>
-          <button onClick={handleInvite} disabled={loading || !email}
-            style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: (loading || !email) ? 0.5 : 1 }}
+          <button onClick={handleInvite} disabled={loading || !email || !password || password.length < 6}
+            style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: (loading || !email || !password || password.length < 6) ? 0.5 : 1 }}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar Convite'}
           </button>
@@ -205,14 +194,13 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
 
 function EditPermissionsModal({ user, onClose }: { user: User; onClose: () => void }) {
   const queryClient = useQueryClient()
-  const [role, setRole] = useState(user.role)
   const [perms, setPerms] = useState(user.permissions)
   const [loading, setLoading] = useState(false)
 
   async function handleSave() {
     setLoading(true)
     try {
-      const { error } = await supabase.from('users').update({ role, permissions: perms }).eq('id', user.id)
+      const { error } = await supabase.from('users').update({ role: 'admin', permissions: perms }).eq('id', user.id)
       if (error) throw error
       queryClient.invalidateQueries({ queryKey: ['company-users'] })
       toast.success('Permissões atualizadas')
@@ -235,14 +223,6 @@ function EditPermissionsModal({ user, onClose }: { user: User; onClose: () => vo
         {/* Body */}
         <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text-2)' }}>{user.name ?? user.email}</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={labelStyle}>Função</label>
-            <select value={role} onChange={e => setRole(e.target.value as UserRole)} style={inputStyle}>
-              <option value="admin">Administrador</option>
-              <option value="driver">Motorista</option>
-              <option value="viewer">Visualizador</option>
-            </select>
-          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <label style={labelStyle}>Permissões</label>
             {(['financeiro', 'rotas', 'usuarios'] as const).map(p => (
