@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { TransactionModal } from '@/components/financial/TransactionModal'
 import { CategoryManager } from '@/components/financial/CategoryManager'
@@ -6,7 +6,7 @@ import { useTransactions, useCategories, useDeleteTransaction, useUpdateTransact
 import { formatCurrency, formatDate, formatMonthYear, getMonthDateRange } from '@/lib/formatters'
 import {
   TrendingUp, TrendingDown, Wallet, Plus, Minus, ChevronLeft, ChevronRight,
-  Trash2, Tag, ArrowUpCircle, ArrowDownCircle, Loader2, PackageOpen, Pencil, X, FileText
+  Trash2, Tag, ArrowUpCircle, ArrowDownCircle, Loader2, PackageOpen, Pencil, X, FileText, Upload
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -15,6 +15,8 @@ import {
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useTheme } from '@/hooks/useTheme'
+import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
 
 export function FinancialPage() {
   const now = new Date()
@@ -287,10 +289,10 @@ export function FinancialPage() {
           transaction={editTx}
           categories={categories?.filter(c => c.type === editTx.type) ?? []}
           onClose={() => setEditTx(null)}
-          onSave={async (categoryId) => {
+          onSave={async (categoryId, receiptUrl) => {
             try {
-              await updateTxMutation.mutateAsync({ id: editTx.id, category_id: categoryId })
-              toast.success('Categoria atualizada!')
+              await updateTxMutation.mutateAsync({ id: editTx.id, category_id: categoryId, receipt_url: receiptUrl })
+              toast.success('Transação atualizada!')
               setEditTx(null)
             } catch { toast.error('Erro ao atualizar') }
           }}
@@ -306,22 +308,46 @@ function EditTransactionModal({ transaction, categories, onClose, onSave, border
   transaction: import('@/types').Transaction
   categories: import('@/types').FinancialCategory[]
   onClose: () => void
-  onSave: (categoryId: string | null) => Promise<void>
+  onSave: (categoryId: string | null, receiptUrl: string | null) => Promise<void>
   borderColor: string
   surfaceBg: string
 }) {
+  const { company } = useAuth()
   const [selectedCat, setSelectedCat] = useState<string | null>(transaction.category_id)
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(transaction.receipt_url)
+  const [receiptFile, setReceiptFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function uploadReceipt(file: File): Promise<string> {
+    if (!company) throw new Error('No company')
+    const ext = file.name.split('.').pop()
+    const path = `${company.id}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('receipts').upload(path, file)
+    if (error) throw error
+    const { data } = supabase.storage.from('receipts').getPublicUrl(path)
+    return data.publicUrl
+  }
 
   async function handleSave() {
     setSaving(true)
-    await onSave(selectedCat)
+    try {
+      let finalReceiptUrl = receiptUrl
+      if (receiptFile) {
+        finalReceiptUrl = await uploadReceipt(receiptFile)
+      }
+      await onSave(selectedCat, finalReceiptUrl)
+    } catch {
+      toast.error('Erro ao salvar')
+    }
     setSaving(false)
   }
 
+  const hasChanges = selectedCat !== transaction.category_id || receiptFile !== null || receiptUrl !== transaction.receipt_url
+
   return (
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
-      <div className="w-full" style={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 14, maxWidth: 440, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+      <div className="w-full" style={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 14, maxWidth: 440, boxShadow: '0 24px 48px rgba(0,0,0,0.5)', maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -336,18 +362,16 @@ function EditTransactionModal({ transaction, categories, onClose, onSave, border
         </div>
 
         {/* Category selection */}
-        <div style={{ padding: '20px 24px' }}>
+        <div style={{ padding: '20px 24px 16px' }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 12 }}>Categoria</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {/* No category option */}
             <button onClick={() => setSelectedCat(null)}
               style={{
                 width: '100%', padding: '12px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500,
                 display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left',
                 border: `1px solid ${!selectedCat ? '#6366f150' : borderColor}`,
                 background: !selectedCat ? '#6366f108' : 'var(--color-bg)',
-                color: 'var(--color-text)',
-                transition: 'all 150ms',
+                color: 'var(--color-text)', transition: 'all 150ms',
               }}
             >
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#888', flexShrink: 0 }} />
@@ -361,8 +385,7 @@ function EditTransactionModal({ transaction, categories, onClose, onSave, border
                   display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left',
                   border: `1px solid ${selectedCat === cat.id ? '#6366f150' : borderColor}`,
                   background: selectedCat === cat.id ? '#6366f108' : 'var(--color-bg)',
-                  color: 'var(--color-text)',
-                  transition: 'all 150ms',
+                  color: 'var(--color-text)', transition: 'all 150ms',
                 }}
               >
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: cat.color, flexShrink: 0 }} />
@@ -373,11 +396,50 @@ function EditTransactionModal({ transaction, categories, onClose, onSave, border
           </div>
         </div>
 
+        {/* Receipt section */}
+        <div style={{ padding: '0 24px 20px' }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 12 }}>Comprovante</label>
+          <input ref={fileRef} type="file" accept="image/*,.pdf" className="hidden" onChange={e => { if (e.target.files?.[0]) { setReceiptFile(e.target.files[0]); setReceiptUrl(null) } }} />
+
+          {receiptFile ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: '1px solid #6366f130', background: '#6366f108' }}>
+              <FileText style={{ width: 16, height: 16, color: '#6366f1', flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: 13, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receiptFile.name}</span>
+              <button onClick={() => { setReceiptFile(null); if (fileRef.current) fileRef.current.value = '' }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', cursor: 'pointer', padding: 2 }}>
+                <Trash2 style={{ width: 14, height: 14 }} />
+              </button>
+            </div>
+          ) : receiptUrl ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: '1px solid #22c55e30', background: '#22c55e08' }}>
+              <FileText style={{ width: 16, height: 16, color: '#22c55e', flexShrink: 0 }} />
+              <a href={receiptUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, fontSize: 13, color: '#22c55e', textDecoration: 'none' }}>Ver comprovante atual</a>
+              <button onClick={() => fileRef.current?.click()}
+                style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', cursor: 'pointer', padding: 2, fontSize: 11 }}>Trocar</button>
+              <button onClick={() => setReceiptUrl(null)}
+                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 2 }}>
+                <Trash2 style={{ width: 14, height: 14 }} />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => fileRef.current?.click()}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%',
+                padding: '12px 14px', borderRadius: 8, border: '1px dashed var(--color-border)',
+                background: 'var(--color-bg)', color: 'var(--color-text-3)', fontSize: 13, cursor: 'pointer',
+              }}
+            >
+              <Upload style={{ width: 14, height: 14 }} />
+              Anexar comprovante
+            </button>
+          )}
+        </div>
+
         {/* Footer */}
         <div style={{ padding: '16px 24px 20px', borderTop: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ background: 'transparent', border: `1px solid ${borderColor}`, color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
-          <button onClick={handleSave} disabled={saving || selectedCat === transaction.category_id}
-            style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: (saving || selectedCat === transaction.category_id) ? 0.5 : 1 }}
+          <button onClick={handleSave} disabled={saving || !hasChanges}
+            style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: (saving || !hasChanges) ? 0.5 : 1 }}
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar'}
           </button>
@@ -386,3 +448,4 @@ function EditTransactionModal({ transaction, categories, onClose, onSave, border
     </div>
   )
 }
+
