@@ -11,7 +11,8 @@ interface AuthContextType {
   user: User | null
   company: Company | null
   loading: boolean
-  signInWithOtp: (email: string) => Promise<{ error: Error | null }>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+  signUp: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -86,7 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function autoCreateDevProfile(userId: string, email: string): Promise<User | null> {
-    // Create company for developer
     const { data: comp, error: compError } = await supabase
       .from('companies')
       .insert({ name: 'Minha Transportadora' })
@@ -144,13 +144,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  async function signInWithOtp(email: string) {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
-    })
+  async function signIn(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    return { error: error as Error | null }
+  }
+
+  async function signUp(email: string, password: string) {
+    // Check if this email is invited or is the dev email
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', email)
+      .single()
+
+    if (!existingUser && email !== DEV_EMAIL) {
+      return { error: new Error('Este e-mail não foi convidado. Solicite um convite ao administrador.') }
+    }
+
+    const { error } = await supabase.auth.signUp({ email, password })
     return { error: error as Error | null }
   }
 
@@ -168,7 +179,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         company,
         loading,
-        signInWithOtp,
+        signIn,
+        signUp,
         signOut,
         refreshUser,
       }}
