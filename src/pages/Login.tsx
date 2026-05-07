@@ -14,7 +14,7 @@ export function LoginPage() {
     setLoading(true)
     setError('')
     const { error: err } = await signInWithOtp(email)
-    if (err) { setError('Erro ao enviar o link. Tente novamente.') } else { setSent(true) }
+    if (err) { setError(err.message || 'Erro ao enviar o link. Tente novamente.') } else { setSent(true) }
     setLoading(false)
   }
 
