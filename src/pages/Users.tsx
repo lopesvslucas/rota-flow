@@ -124,20 +124,14 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
     if (password.length < 6) { toast.error('Senha deve ter pelo menos 6 caracteres'); return }
     setLoading(true)
     try {
-      // 1. Create auth user via signup
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { invited: true } },
-      })
+      // Generate a placeholder UUID for the invited user profile.
+      // When they sign up via the login page, useAuth will match by email
+      // and update the ID to their real auth ID.
+      const placeholderId = crypto.randomUUID()
 
-      if (authError) throw authError
-
-      const userId = authData.user?.id ?? crypto.randomUUID()
-
-      // 2. Create profile in users table
+      // Insert profile in users table (no auth.signUp to avoid logging out the admin)
       const { error } = await supabase.from('users').insert({
-        id: userId,
+        id: placeholderId,
         company_id: companyId,
         email,
         name: email.split('@')[0],
@@ -147,7 +141,7 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
       if (error) throw error
 
       queryClient.invalidateQueries({ queryKey: ['company-users'] })
-      toast.success(`Usuário convidado! Senha: ${password}`)
+      toast.success(`Convite criado! O usuário deve se cadastrar com o email: ${email} e a senha: ${password}`)
       onClose()
     } catch (err: any) { toast.error(err?.message || 'Erro ao convidar') }
     setLoading(false)

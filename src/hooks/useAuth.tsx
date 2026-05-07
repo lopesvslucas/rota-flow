@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('[Auth] Profile by ID:', profile ? 'FOUND' : 'NOT FOUND', profileError?.message || '')
 
     if (!profile) {
-      // Try by email
+      // Try by email (covers invited users with placeholder IDs)
       const { data: emailProfile } = await supabase
         .from('users')
         .select('*')
@@ -49,14 +49,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (emailProfile) {
         if (emailProfile.id !== userId) {
-          // Update invited profile with real auth ID
-          const { data: updated } = await supabase
+          // Found an invited profile with a placeholder ID
+          // We need to replace it with the real auth user ID
+          // Can't just UPDATE the PK because it references auth.users(id)
+          console.log('[Auth] Replacing placeholder profile with real auth ID')
+          const { company_id, name, role, permissions } = emailProfile
+
+          // Delete old placeholder profile
+          await supabase.from('users').delete().eq('id', emailProfile.id)
+
+          // Insert new profile with correct auth ID
+          const { data: newProfile, error: insertError } = await supabase
             .from('users')
-            .update({ id: userId })
-            .eq('email', email)
+            .insert({
+              id: userId,
+              company_id,
+              email,
+              name,
+              role,
+              permissions,
+            })
             .select()
             .single()
-          profile = updated
+
+          if (insertError) {
+            console.error('[Auth] Error re-creating profile:', insertError.message)
+            // Fallback: try to use the old profile as-is
+            profile = emailProfile
+          } else {
+            profile = newProfile
+          }
         } else {
           profile = emailProfile
         }
@@ -84,13 +106,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(profile)
 
       if (profile.company_id) {
-        const { data: comp } = await supabase
+        const { data: comp, error: compError } = await supabase
           .from('companies')
           .select('*')
           .eq('id', profile.company_id)
           .maybeSingle()
 
-        console.log('[Auth] Company:', comp ? comp.name : 'NOT FOUND')
+        console.log('[Auth] Company:', comp ? comp.name : 'NOT FOUND', compError?.message || '')
         if (comp) setCompany(comp)
       }
     }
