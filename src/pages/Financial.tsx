@@ -94,16 +94,16 @@ export function FinancialPage() {
       <div>
         {/* Month nav + actions */}
         <div className="flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 24 }}>
-          <div className="flex items-center gap-0" style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 10, padding: 4 }}>
-            <button onClick={prevMonth} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888', display: 'flex', alignItems: 'center' }} onMouseEnter={e => { e.currentTarget.style.background = '#222'; e.currentTarget.style.color = '#f5f5f5' }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}><ChevronLeft className="h-4 w-4" /></button>
-            <span style={{ fontSize: 13, fontWeight: 600, minWidth: 130, textAlign: 'center', textTransform: 'capitalize', color: '#f5f5f5', padding: '0 8px' }}>{formatMonthYear(month, year)}</span>
-            <button onClick={nextMonth} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888', display: 'flex', alignItems: 'center' }} onMouseEnter={e => { e.currentTarget.style.background = '#222'; e.currentTarget.style.color = '#f5f5f5' }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}><ChevronRight className="h-4 w-4" /></button>
+          <div className="flex items-center gap-0" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 4 }}>
+            <button onClick={prevMonth} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-2)', display: 'flex', alignItems: 'center' }} onMouseEnter={e => { e.currentTarget.style.background = '#222'; e.currentTarget.style.color = '#f5f5f5' }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}><ChevronLeft className="h-4 w-4" /></button>
+            <span style={{ fontSize: 13, fontWeight: 600, minWidth: 130, textAlign: 'center', textTransform: 'capitalize', color: 'var(--color-text)', padding: '0 8px' }}>{formatMonthYear(month, year)}</span>
+            <button onClick={nextMonth} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-2)', display: 'flex', alignItems: 'center' }} onMouseEnter={e => { e.currentTarget.style.background = '#222'; e.currentTarget.style.color = '#f5f5f5' }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}><ChevronRight className="h-4 w-4" /></button>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setShowCategories(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid #303030', background: '#1c1c1c', color: '#999', cursor: 'pointer', transition: 'all 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = '#222'; e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#f5f5f5' }} onMouseLeave={e => { e.currentTarget.style.background = '#1c1c1c'; e.currentTarget.style.borderColor = '#303030'; e.currentTarget.style.color = '#999' }}>
+            <button onClick={() => setShowCategories(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text-2)', cursor: 'pointer', transition: 'all 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = '#222'; e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#f5f5f5' }} onMouseLeave={e => { e.currentTarget.style.background = '#1c1c1c'; e.currentTarget.style.borderColor = '#303030'; e.currentTarget.style.color = '#999' }}>
               <Tag className="h-3.5 w-3.5" /> Categorias
             </button>
-            <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid #303030', background: '#1c1c1c', color: '#999', cursor: 'pointer', transition: 'all 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = '#222'; e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#f5f5f5' }} onMouseLeave={e => { e.currentTarget.style.background = '#1c1c1c'; e.currentTarget.style.borderColor = '#303030'; e.currentTarget.style.color = '#999' }}>
+            <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text-2)', cursor: 'pointer', transition: 'all 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = '#222'; e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#f5f5f5' }} onMouseLeave={e => { e.currentTarget.style.background = '#1c1c1c'; e.currentTarget.style.borderColor = '#303030'; e.currentTarget.style.color = '#999' }}>
               <Download className="h-3.5 w-3.5" /> CSV
             </button>
           </div>
@@ -116,20 +116,20 @@ export function FinancialPage() {
             { label: 'Saídas hoje', value: formatCurrency(todaySaidas), icon: TrendingDown, iconColor: '#ef4444', iconBg: '#ef444420', valueColor: '#ef4444' },
             { label: 'Saldo do mês', value: formatCurrency(saldo), icon: Wallet, iconColor: '#6366f1', iconBg: '#6366f120', valueColor: saldo >= 0 ? '#22c55e' : '#ef4444' },
           ].map(s => (
-            <div key={s.label} style={{ padding: 20, border: '1px solid #303030', borderRadius: 10, background: '#1c1c1c' }}>
+            <div key={s.label} style={{ padding: 20, border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)' }}>
               <div className="flex items-center justify-center rounded-[9px] mb-4" style={{ width: 38, height: 38, background: s.iconBg }}>
                 <s.icon className="h-[18px] w-[18px]" style={{ color: s.iconColor }} />
               </div>
               <p className="text-[34px] font-extrabold leading-none" style={{ color: s.valueColor }}>{s.value}</p>
-              <p className="text-[13px] mt-2" style={{ color: '#999999' }}>{s.label}</p>
+              <p className="text-[13px] mt-2" style={{ color: 'var(--color-text-2)' }}>{s.label}</p>
             </div>
           ))}
         </div>
 
         {/* Charts */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, marginBottom: 24 }}>
-          <div style={{ border: '1px solid #303030', borderRadius: 10, padding: 20, background: '#1c1c1c' }}>
-            <h4 style={{ fontSize: 13, fontWeight: 600, color: '#999', marginBottom: 16 }}>Entradas vs Saídas</h4>
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: 10, padding: 20, background: 'var(--color-surface)' }}>
+            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 16 }}>Entradas vs Saídas</h4>
             <div style={{ height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailyData} barGap={2}>
@@ -137,9 +137,9 @@ export function FinancialPage() {
                   <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#555555' }} axisLine={{ stroke: '#303030' }} tickLine={{ stroke: '#303030' }} />
                   <YAxis tick={{ fontSize: 10, fill: '#555555' }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} axisLine={{ stroke: '#303030' }} tickLine={{ stroke: '#303030' }} />
                   <Tooltip
-                    contentStyle={{ background: '#222222', border: '1px solid #303030', borderRadius: 8, fontSize: 12, color: '#f5f5f5' }}
+                    contentStyle={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12, color: 'var(--color-text)' }}
                     formatter={(v) => formatCurrency(Number(v))}
-                    labelStyle={{ color: '#999999' }}
+                    labelStyle={{ color: 'var(--color-text-2)' }}
                     cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                   />
                   <Bar dataKey="entradas" fill="#22c55e" radius={[3, 3, 0, 0]} name="Entradas" />
@@ -148,8 +148,8 @@ export function FinancialPage() {
               </ResponsiveContainer>
             </div>
           </div>
-          <div style={{ border: '1px solid #303030', borderRadius: 10, padding: 20, background: '#1c1c1c' }}>
-            <h4 style={{ fontSize: 13, fontWeight: 600, color: '#999', marginBottom: 16 }}>Por categoria</h4>
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: 10, padding: 20, background: 'var(--color-surface)' }}>
+            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 16 }}>Por categoria</h4>
             <div style={{ height: 220 }}>
               {categoryData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -157,8 +157,8 @@ export function FinancialPage() {
                     <Pie data={categoryData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" nameKey="name" paddingAngle={3} strokeWidth={0}>
                       {categoryData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ background: '#222222', border: '1px solid #303030', borderRadius: 8, fontSize: 12, color: '#f5f5f5' }} formatter={(v) => formatCurrency(Number(v))} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} formatter={(v: string) => <span style={{ color: '#999999' }}>{v}</span>} />
+                    <Tooltip contentStyle={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12, color: 'var(--color-text)' }} formatter={(v) => formatCurrency(Number(v))} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} formatter={(v: string) => <span style={{ color: 'var(--color-text-2)' }}>{v}</span>} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
@@ -172,10 +172,10 @@ export function FinancialPage() {
         </div>
 
         {/* Transactions list */}
-        <div style={{ border: '1px solid #303030', borderRadius: 10, background: '#1c1c1c', overflow: 'hidden' }}>
-          <div className="flex items-center justify-between" style={{ padding: '16px 20px', borderBottom: '1px solid #303030', fontSize: 13, fontWeight: 600 }}>
+        <div style={{ border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', overflow: 'hidden' }}>
+          <div className="flex items-center justify-between" style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', fontSize: 13, fontWeight: 600 }}>
             <h4 className="text-text">Últimas transações</h4>
-            <span className="text-text-3 font-medium rounded-[10px] border px-2.5 py-0.5" style={{ borderColor: '#303030', fontSize: 12 }}>{transactions?.length ?? 0}</span>
+            <span className="text-text-3 font-medium rounded-[10px] border px-2.5 py-0.5" style={{ borderColor: 'var(--color-border)', fontSize: 12 }}>{transactions?.length ?? 0}</span>
           </div>
           {isLoading ? (
             <div className="p-10 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>
@@ -243,15 +243,15 @@ export function FinancialPage() {
 
       {deleteConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setDeleteConfirm(null)}>
-          <div style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 14, padding: 0, maxWidth: 480, width: '100%', boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #303030', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f5f5f5' }}>Excluir transação?</h3>
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, padding: 0, maxWidth: 480, width: '100%', boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Excluir transação?</h3>
             </div>
             <div style={{ padding: '20px 24px' }}>
               <p className="text-[13px] text-text-2">Essa ação não pode ser desfeita.</p>
             </div>
-            <div style={{ padding: '16px 24px 20px', borderTop: '1px solid #303030', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ background: 'transparent', border: '1px solid #303030', color: '#888', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
+            <div style={{ padding: '16px 24px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setDeleteConfirm(null)} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
               <button onClick={() => handleDelete(deleteConfirm)} style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600 }}>Excluir</button>
             </div>
           </div>

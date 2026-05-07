@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -7,7 +8,12 @@ import {
   LogOut,
   Sun,
   Moon,
+  KeyRound,
+  X,
+  Loader2,
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
@@ -112,6 +118,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           <span>{isDark ? 'Modo claro' : 'Modo escuro'}</span>
         </button>
 
+        {/* Change password */}
+        <ChangePasswordButton isDark={isDark} />
+
         {/* User info */}
         {user && (
           <div style={{ padding: '0 4px', marginBottom: 8 }}>
@@ -129,7 +138,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
         <button
           onClick={signOut}
-          style={{ width: '100%', padding: '9px 12px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', background: 'transparent', border: '1px solid transparent', color: '#666', cursor: 'pointer' }}
+          style={{ width: '100%', padding: '9px 12px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', background: 'transparent', border: '1px solid transparent', color: 'var(--color-text-3)', cursor: 'pointer' }}
           onMouseEnter={e => { e.currentTarget.style.background = isDark ? '#1a1a1a' : '#fef2f2'; e.currentTarget.style.color = '#ef4444' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#666' }}
         >
@@ -138,5 +147,54 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         </button>
       </div>
     </aside>
+  )
+}
+
+function ChangePasswordButton({ isDark }: { isDark: boolean }) {
+  const [open, setOpen] = useState(false)
+  const [pw, setPw] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleChange() {
+    if (pw.length < 6) { toast.error('Mínimo 6 caracteres'); return }
+    setLoading(true)
+    const { error } = await supabase.auth.updateUser({ password: pw })
+    if (error) { toast.error(error.message) } else { toast.success('Senha alterada!'); setOpen(false); setPw('') }
+    setLoading(false)
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', background: 'transparent', border: '1px solid transparent', color: isDark ? '#777' : '#888', cursor: 'pointer', marginBottom: 4 }}
+        onMouseEnter={e => { e.currentTarget.style.background = isDark ? '#1a1a1a' : '#f0f0f2'; e.currentTarget.style.color = isDark ? '#ccc' : '#333' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = isDark ? '#777' : '#888' }}
+      >
+        <KeyRound style={{ width: 15, height: 15, flexShrink: 0 }} />
+        <span>Alterar senha</span>
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setOpen(false)}>
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, padding: 0, width: 360, maxWidth: '90vw' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Alterar Senha</h3>
+              <button onClick={() => setOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', cursor: 'pointer' }}><X style={{ width: 18, height: 18 }} /></button>
+            </div>
+            <div style={{ padding: '20px 24px' }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>Nova senha</label>
+              <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Mínimo 6 caracteres" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: 14, outline: 'none' }} />
+            </div>
+            <div style={{ padding: '16px 24px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setOpen(false)} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+              <button onClick={handleChange} disabled={loading || pw.length < 6} style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: (loading || pw.length < 6) ? 0.5 : 1 }}>
+                {loading ? <Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} /> : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

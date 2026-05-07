@@ -9,10 +9,10 @@ interface Props { onClose: () => void }
 const COLORS = ['#6366f1','#22c55e','#ef4444','#f59e0b','#3b82f6','#ec4899','#8b5cf6','#06b6d4','#f97316','#6b7280']
 
 const inputStyle: React.CSSProperties = {
-  background: '#141414',
-  border: '1px solid #303030',
+  background: 'var(--color-bg)',
+  border: '1px solid var(--color-border)',
   borderRadius: 8,
-  color: '#f5f5f5',
+  color: 'var(--color-text)',
   fontSize: 14,
   padding: '10px 14px',
   width: '100%',
@@ -22,7 +22,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: 12,
   fontWeight: 600,
-  color: '#888',
+  color: 'var(--color-text-2)',
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
 }
@@ -66,19 +66,19 @@ export function CategoryManager({ onClose }: Props) {
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
       <div
         className="w-full max-h-[85vh] flex flex-col"
-        style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
+        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #303030', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="shrink-0">
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f5f5f5' }}>Categorias</h3>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#666', fontSize: 18, cursor: 'pointer', padding: 4 }}>
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="shrink-0">
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Categorias</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', fontSize: 18, cursor: 'pointer', padding: 4 }}>
             <X className="h-[18px] w-[18px]" />
           </button>
         </div>
 
         {/* Add/Edit form */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #303030', display: 'flex', flexDirection: 'column', gap: 16 }} className="shrink-0">
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 16 }} className="shrink-0">
           <div className="flex gap-3">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
               <label style={labelStyle}>Nome</label>

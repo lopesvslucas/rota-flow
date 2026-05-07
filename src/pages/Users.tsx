@@ -52,7 +52,7 @@ export function UsersPage() {
           </button>
         </div>
 
-        <div className="rounded-[10px] border overflow-hidden" style={{ background: '#1c1c1c', borderColor: '#303030' }}>
+        <div className="rounded-[10px] border overflow-hidden" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           {isLoading ? (
             <div className="p-10 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>
           ) : !users?.length ? (
@@ -64,7 +64,7 @@ export function UsersPage() {
           ) : (
             <div>
               {users.map((u, i) => (
-                <div key={u.id} className={cn('flex items-center gap-3 px-5 py-[14px] hover:bg-surface-2 transition-colors duration-150', i < users.length - 1 && 'border-b')} style={{ borderColor: '#303030' }}>
+                <div key={u.id} className={cn('flex items-center gap-3 px-5 py-[14px] hover:bg-surface-2 transition-colors duration-150', i < users.length - 1 && 'border-b')} style={{ borderColor: 'var(--color-border)' }}>
                   <div className="flex items-center justify-center rounded-[9px] shrink-0 text-[13px] font-bold" style={{ width: 34, height: 34, background: '#6366f120', color: '#6366f1' }}>
                     {u.name?.charAt(0)?.toUpperCase() ?? u.email.charAt(0).toUpperCase()}
                   </div>
@@ -93,10 +93,10 @@ export function UsersPage() {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: '#141414',
-  border: '1px solid #303030',
+  background: 'var(--color-bg)',
+  border: '1px solid var(--color-border)',
   borderRadius: 8,
-  color: '#f5f5f5',
+  color: 'var(--color-text)',
   fontSize: 14,
   padding: '10px 14px',
   width: '100%',
@@ -106,7 +106,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: 12,
   fontWeight: 600,
-  color: '#888',
+  color: 'var(--color-text-2)',
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
 }
@@ -155,11 +155,11 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
-      <div className="w-full" style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+      <div className="w-full" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #303030', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f5f5f5' }}>Convidar Usuário</h3>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#666', fontSize: 18, cursor: 'pointer', padding: 4 }}>
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Convidar Usuário</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', fontSize: 18, cursor: 'pointer', padding: 4 }}>
             <X className="h-[18px] w-[18px]" />
           </button>
         </div>
@@ -185,7 +185,7 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <label style={labelStyle}>Permissões</label>
             {(['financeiro', 'rotas', 'usuarios'] as const).map(p => (
-              <label key={p} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#f5f5f5', cursor: 'pointer', padding: '2px 0' }}>
+              <label key={p} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--color-text)', cursor: 'pointer', padding: '2px 0' }}>
                 <input type="checkbox" checked={perms[p]} onChange={e => setPerms(prev => ({ ...prev, [p]: e.target.checked }))} style={{ width: 16, height: 16, accentColor: '#6366f1', borderRadius: 4 }} />
                 {p === 'financeiro' ? 'Financeiro' : p === 'rotas' ? 'Rotas' : 'Gerenciar Usuários'}
               </label>
@@ -194,8 +194,8 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '16px 24px 20px', borderTop: '1px solid #303030', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ background: 'transparent', border: '1px solid #303030', color: '#888', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+        <div style={{ padding: '16px 24px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             Cancelar
           </button>
           <button onClick={handleInvite} disabled={loading || !email}
@@ -229,18 +229,18 @@ function EditPermissionsModal({ user, onClose }: { user: User; onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
-      <div className="w-full" style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+      <div className="w-full" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #303030', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f5f5f5' }}>Editar Permissões</h3>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#666', fontSize: 18, cursor: 'pointer', padding: 4 }}>
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Editar Permissões</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', fontSize: 18, cursor: 'pointer', padding: 4 }}>
             <X className="h-[18px] w-[18px]" />
           </button>
         </div>
 
         {/* Body */}
         <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <p style={{ fontSize: 14, fontWeight: 500, color: '#999' }}>{user.name ?? user.email}</p>
+          <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text-2)' }}>{user.name ?? user.email}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={labelStyle}>Função</label>
             <select value={role} onChange={e => setRole(e.target.value as UserRole)} style={inputStyle}>
@@ -252,7 +252,7 @@ function EditPermissionsModal({ user, onClose }: { user: User; onClose: () => vo
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <label style={labelStyle}>Permissões</label>
             {(['financeiro', 'rotas', 'usuarios'] as const).map(p => (
-              <label key={p} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#f5f5f5', cursor: 'pointer', padding: '2px 0' }}>
+              <label key={p} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--color-text)', cursor: 'pointer', padding: '2px 0' }}>
                 <input type="checkbox" checked={perms[p]} onChange={e => setPerms(prev => ({ ...prev, [p]: e.target.checked }))} style={{ width: 16, height: 16, accentColor: '#6366f1', borderRadius: 4 }} />
                 {p === 'financeiro' ? 'Financeiro' : p === 'rotas' ? 'Rotas' : 'Gerenciar Usuários'}
               </label>
@@ -261,8 +261,8 @@ function EditPermissionsModal({ user, onClose }: { user: User; onClose: () => vo
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '16px 24px 20px', borderTop: '1px solid #303030', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ background: 'transparent', border: '1px solid #303030', color: '#888', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+        <div style={{ padding: '16px 24px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             Cancelar
           </button>
           <button onClick={handleSave} disabled={loading}

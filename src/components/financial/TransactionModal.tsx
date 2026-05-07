@@ -13,10 +13,10 @@ interface TransactionModalProps {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: '#141414',
-  border: '1px solid #303030',
+  background: 'var(--color-bg)',
+  border: '1px solid var(--color-border)',
   borderRadius: 8,
-  color: '#f5f5f5',
+  color: 'var(--color-text)',
   fontSize: 14,
   padding: '10px 14px',
   width: '100%',
@@ -26,7 +26,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: 12,
   fontWeight: 600,
-  color: '#888',
+  color: 'var(--color-text-2)',
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
 }
@@ -49,13 +49,13 @@ export function TransactionModal({ type, categories, onClose }: TransactionModal
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
       <div
         className="w-full"
-        style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
+        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #303030', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f5f5f5' }}>Nova {type === 'entrada' ? 'Entrada' : 'Saída'}</h3>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#666', fontSize: 18, cursor: 'pointer', padding: 4 }}>
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Nova {type === 'entrada' ? 'Entrada' : 'Saída'}</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', fontSize: 18, cursor: 'pointer', padding: 4 }}>
             <X className="h-[18px] w-[18px]" />
           </button>
         </div>
@@ -94,8 +94,8 @@ export function TransactionModal({ type, categories, onClose }: TransactionModal
           </div>
 
           {/* Footer */}
-          <div style={{ padding: '16px 24px 20px', borderTop: '1px solid #303030', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <button type="button" onClick={onClose} style={{ background: 'transparent', border: '1px solid #303030', color: '#888', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <div style={{ padding: '16px 24px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <button type="button" onClick={onClose} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Cancelar
             </button>
             <button type="submit" disabled={createTransaction.isPending} style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: createTransaction.isPending ? 0.5 : 1 }}>

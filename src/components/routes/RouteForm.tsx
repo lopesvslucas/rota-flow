@@ -20,10 +20,10 @@ type FormData = z.infer<typeof schema>
 interface Props { onClose: () => void }
 
 const inputStyle: React.CSSProperties = {
-  background: '#141414',
-  border: '1px solid #303030',
+  background: 'var(--color-bg)',
+  border: '1px solid var(--color-border)',
   borderRadius: 8,
-  color: '#f5f5f5',
+  color: 'var(--color-text)',
   fontSize: 14,
   padding: '10px 14px',
   width: '100%',
@@ -33,7 +33,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: 12,
   fontWeight: 600,
-  color: '#888',
+  color: 'var(--color-text-2)',
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
 }
@@ -100,13 +100,13 @@ export function RouteFormModal({ onClose }: Props) {
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
       <div
         className="w-full max-h-[90vh] overflow-y-auto"
-        style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
+        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 14, padding: 0, maxWidth: 480, boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #303030', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f5f5f5' }}>Nova Rota</h3>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#666', fontSize: 18, cursor: 'pointer', padding: 4 }}>
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Nova Rota</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', fontSize: 18, cursor: 'pointer', padding: 4 }}>
             <X className="h-[18px] w-[18px]" />
           </button>
         </div>
@@ -130,7 +130,7 @@ export function RouteFormModal({ onClose }: Props) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={labelStyle}>Valor</label>
                 <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, fontWeight: 500, color: '#555' }}>R$</span>
+                  <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, fontWeight: 500, color: 'var(--color-text-3)' }}>R$</span>
                   <input type="text" value={amountDisplay} onChange={handleAmountChange} placeholder="0,00" style={{ ...inputStyle, paddingLeft: 40 }} />
                 </div>
               </div>
@@ -165,10 +165,10 @@ export function RouteFormModal({ onClose }: Props) {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   padding: '14px 16px',
-                  background: '#141414',
-                  border: '2px dashed #303030',
+                  background: 'var(--color-bg)',
+                  border: '2px dashed var(--color-border)',
                   borderRadius: 10,
-                  color: '#666',
+                  color: 'var(--color-text-3)',
                   fontSize: 13,
                   fontWeight: 500,
                   cursor: 'pointer',
@@ -189,18 +189,18 @@ export function RouteFormModal({ onClose }: Props) {
                       display: 'flex', alignItems: 'center', gap: 10,
                       padding: '8px 12px',
                       background: '#181818',
-                      border: '1px solid #282828',
+                      border: '1px solid var(--color-border)',
                       borderRadius: 8,
                     }}>
                       <div style={{ width: 28, height: 28, borderRadius: 6, background: '#6366f115', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <FileText style={{ width: 14, height: 14, color: '#6366f1' }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, fontWeight: 500, color: '#ccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</p>
-                        <p style={{ fontSize: 10, color: '#555' }}>{(file.size / 1024).toFixed(0)} KB</p>
+                        <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</p>
+                        <p style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{(file.size / 1024).toFixed(0)} KB</p>
                       </div>
                       <button type="button" onClick={() => removeFile(i)}
-                        style={{ background: 'transparent', border: 'none', color: '#555', cursor: 'pointer', padding: 4, borderRadius: 6 }}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--color-text-3)', cursor: 'pointer', padding: 4, borderRadius: 6 }}
                         onMouseEnter={e => { e.currentTarget.style.color = '#ef4444' }}
                         onMouseLeave={e => { e.currentTarget.style.color = '#555' }}
                       >
@@ -214,8 +214,8 @@ export function RouteFormModal({ onClose }: Props) {
           </div>
 
           {/* Footer */}
-          <div style={{ padding: '16px 24px 20px', borderTop: '1px solid #303030', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <button type="button" onClick={onClose} style={{ background: 'transparent', border: '1px solid #303030', color: '#888', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <div style={{ padding: '16px 24px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <button type="button" onClick={onClose} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Cancelar
             </button>
             <button type="submit" disabled={isSubmitting} style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: isSubmitting ? 0.5 : 1 }}>

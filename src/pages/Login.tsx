@@ -42,25 +42,25 @@ export function LoginPage() {
           }}>
             <Truck style={{ width: 28, height: 28, color: 'white' }} />
           </div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, color: '#f5f5f5', letterSpacing: '-0.03em' }}>RotaFlow</h1>
-          <p style={{ fontSize: 14, color: '#666', marginTop: 6, fontWeight: 500 }}>Controle inteligente de transportadora</p>
+          <h1 style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.03em' }}>RotaFlow</h1>
+          <p style={{ fontSize: 14, color: 'var(--color-text-3)', marginTop: 6, fontWeight: 500 }}>Controle inteligente de transportadora</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 16, padding: 32 }}>
+        <form onSubmit={handleSubmit} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 16, padding: 32 }}>
           {/* Email */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>E-mail</label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>E-mail</label>
             <div style={{ position: 'relative' }}>
-              <Mail style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#555' }} />
+              <Mail style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--color-text-3)' }} />
               <input
                 type="email" value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="nome@empresa.com"
                 required
                 style={{
-                  width: '100%', borderRadius: 10, border: '1px solid #303030',
+                  width: '100%', borderRadius: 10, border: '1px solid var(--color-border)',
                   paddingLeft: 42, paddingRight: 14, paddingTop: 12, paddingBottom: 12,
-                  fontSize: 14, color: '#f5f5f5', background: '#141414', outline: 'none',
+                  fontSize: 14, color: 'var(--color-text)', background: 'var(--color-bg)', outline: 'none',
                 }}
               />
             </div>
@@ -68,22 +68,22 @@ export function LoginPage() {
 
           {/* Password */}
           <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Senha</label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Senha</label>
             <div style={{ position: 'relative' }}>
-              <Lock style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#555' }} />
+              <Lock style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--color-text-3)' }} />
               <input
                 type={showPassword ? 'text' : 'password'} value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••"
                 required
                 style={{
-                  width: '100%', borderRadius: 10, border: '1px solid #303030',
+                  width: '100%', borderRadius: 10, border: '1px solid var(--color-border)',
                   paddingLeft: 42, paddingRight: 44, paddingTop: 12, paddingBottom: 12,
-                  fontSize: 14, color: '#f5f5f5', background: '#141414', outline: 'none',
+                  fontSize: 14, color: 'var(--color-text)', background: 'var(--color-bg)', outline: 'none',
                 }}
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#555', cursor: 'pointer', padding: 4 }}
+                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: 'var(--color-text-3)', cursor: 'pointer', padding: 4 }}
               >
                 {showPassword ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
               </button>

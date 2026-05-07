@@ -37,19 +37,19 @@ export function RoutesPage() {
             { label: 'Concluídas', value: entregues, icon: CheckCircle2, iconColor: '#22c55e', iconBg: '#22c55e20' },
             { label: 'Faturamento', value: formatCurrency(faturamento), icon: DollarSign, iconColor: '#6366f1', iconBg: '#6366f120', isMonetary: true },
           ].map(s => (
-            <div key={s.label} style={{ padding: 20, border: '1px solid #303030', borderRadius: 10, background: '#1c1c1c' }}>
+            <div key={s.label} style={{ padding: 20, border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)' }}>
               <div className="flex items-center justify-center rounded-[9px] mb-4" style={{ width: 38, height: 38, background: s.iconBg }}>
                 <s.icon className="h-[18px] w-[18px]" style={{ color: s.iconColor }} />
               </div>
               <p className="text-[34px] font-extrabold leading-none" style={{ color: 'isMonetary' in s ? s.iconColor : '#f5f5f5' }}>{s.value}</p>
-              <p className="text-[13px] mt-2" style={{ color: '#999999' }}>{s.label}</p>
+              <p className="text-[13px] mt-2" style={{ color: 'var(--color-text-2)' }}>{s.label}</p>
             </div>
           ))}
         </div>
 
         {/* Filter tabs + button */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 10, padding: 4, display: 'inline-flex', gap: 2 }}>
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 4, display: 'inline-flex', gap: 2 }}>
             {[
               { value: '', label: 'Todos' },
               { value: 'pendente', label: 'Pendente' },
@@ -59,7 +59,7 @@ export function RoutesPage() {
             ].map(s => (
               <button key={s.value} onClick={() => setStatusFilter(s.value)}
                 style={statusFilter === s.value
-                  ? { padding: '7px 16px', borderRadius: 7, fontSize: 13, color: '#f5f5f5', background: '#282828', border: '1px solid #383838', fontWeight: 600, cursor: 'pointer', transition: 'all 150ms', whiteSpace: 'nowrap' as const }
+                  ? { padding: '7px 16px', borderRadius: 7, fontSize: 13, color: 'var(--color-text)', background: '#282828', border: '1px solid #383838', fontWeight: 600, cursor: 'pointer', transition: 'all 150ms', whiteSpace: 'nowrap' as const }
                   : { padding: '7px 16px', borderRadius: 7, fontSize: 13, color: '#777', background: 'transparent', border: '1px solid transparent', fontWeight: 500, cursor: 'pointer', transition: 'all 150ms', whiteSpace: 'nowrap' as const }
                 }
                 onMouseEnter={e => { if (statusFilter !== s.value) { e.currentTarget.style.color = '#bbb'; e.currentTarget.style.background = '#1f1f1f' } }}
@@ -79,7 +79,7 @@ export function RoutesPage() {
         </div>
 
         {/* Routes list */}
-        <div style={{ border: '1px solid #303030', borderRadius: 10, background: '#1c1c1c', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', overflow: 'hidden' }}>
           {isLoading ? (
             <div className="p-10 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>
           ) : !routes?.length ? (

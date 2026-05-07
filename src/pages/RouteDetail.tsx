@@ -68,7 +68,7 @@ export function RouteDetailPage() {
         </button>
 
         {/* Header card */}
-        <div className="rounded-[10px] border p-5" style={{ background: '#1c1c1c', borderColor: '#303030' }}>
+        <div className="rounded-[10px] border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-[20px] font-bold text-text">{route.title}</h3>
@@ -87,7 +87,7 @@ export function RouteDetailPage() {
                   'badge cursor-pointer transition-colors duration-150',
                   route.status === s.value ? s.badgeClass : 'border text-text-3 hover:bg-surface-2'
                 )}
-                style={route.status !== s.value ? { borderColor: '#303030' } : undefined}
+                style={route.status !== s.value ? { borderColor: 'var(--color-border)' } : undefined}
               >
                 {s.label}
               </button>
@@ -105,8 +105,8 @@ export function RouteDetailPage() {
         </div>
 
         {/* Attachments */}
-        <div className="rounded-[10px] border overflow-hidden" style={{ background: '#1c1c1c', borderColor: '#303030' }}>
-          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: '#303030' }}>
+        <div className="rounded-[10px] border overflow-hidden" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
             <h4 className="text-[14px] font-semibold text-text">Comprovantes</h4>
             <button onClick={() => fileInputRef.current?.click()} disabled={uploadAttachment.isPending}
               className="flex items-center gap-1.5 px-[14px] py-[6px] text-[13px] font-medium rounded-[8px] text-white disabled:opacity-50 transition-colors duration-150 hover:brightness-110" style={{ background: '#6366f1' }}>
@@ -124,16 +124,16 @@ export function RouteDetailPage() {
           ) : (
             <div className="p-5 grid grid-cols-2 md:grid-cols-3 gap-3">
               {attachments.map(att => (
-                <div key={att.id} className="rounded-[10px] border p-3 hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: '#303030' }}>
-                  <div className="flex items-center justify-center h-20 mb-2 rounded-[8px] overflow-hidden" style={{ background: '#141414' }}>
+                <div key={att.id} className="rounded-[10px] border p-3 hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: 'var(--color-border)' }}>
+                  <div className="flex items-center justify-center h-20 mb-2 rounded-[8px] overflow-hidden" style={{ background: 'var(--color-bg)' }}>
                     {att.file_type?.startsWith('image/') ? <img src={att.file_url} alt={att.file_name} className="h-full w-full object-cover" /> : <FileText className="h-8 w-8 text-text-3" />}
                   </div>
                   <p className="text-[12px] truncate mb-2 text-text-2">{att.file_name}</p>
                   <div className="flex gap-1">
-                    <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1 py-1 text-[10px] rounded-[6px] border text-text-2 hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: '#303030' }}>
+                    <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1 py-1 text-[10px] rounded-[6px] border text-text-2 hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: 'var(--color-border)' }}>
                       <Download className="h-3 w-3" /> Baixar
                     </a>
-                    <button onClick={() => deleteAttachment.mutate({ id: att.id, routeId: id! })} className="p-1 rounded-[6px] border text-text-3 hover:text-red hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: '#303030' }}>
+                    <button onClick={() => deleteAttachment.mutate({ id: att.id, routeId: id! })} className="p-1 rounded-[6px] border text-text-3 hover:text-red hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: 'var(--color-border)' }}>
                       <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
@@ -144,7 +144,7 @@ export function RouteDetailPage() {
         </div>
 
         {/* Public link */}
-        <div className="rounded-[10px] border p-5" style={{ background: '#1c1c1c', borderColor: '#303030' }}>
+        <div className="rounded-[10px] border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-[14px] font-semibold flex items-center gap-2 text-text"><Link2 className="h-4 w-4" style={{ color: '#6366f1' }} /> Link Público</h4>
             <button onClick={handleTogglePublicLink}
@@ -156,8 +156,8 @@ export function RouteDetailPage() {
           </div>
           {route.public_link_active && (
             <div className="flex items-center gap-2">
-              <input readOnly value={publicUrl} className="flex-1 rounded-[8px] border px-[14px] py-[10px] text-[12px] text-text-2 focus:outline-none" style={{ background: '#222222', borderColor: '#303030' }} />
-              <button onClick={copyPublicLink} className="flex items-center gap-1.5 px-[14px] py-[10px] text-[12px] font-medium rounded-[8px] border text-text-2 hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: '#303030' }}>
+              <input readOnly value={publicUrl} className="flex-1 rounded-[8px] border px-[14px] py-[10px] text-[12px] text-text-2 focus:outline-none" style={{ background: 'var(--color-surface-2)', borderColor: 'var(--color-border)' }} />
+              <button onClick={copyPublicLink} className="flex items-center gap-1.5 px-[14px] py-[10px] text-[12px] font-medium rounded-[8px] border text-text-2 hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: 'var(--color-border)' }}>
                 {copied ? <Check className="h-3.5 w-3.5" style={{ color: '#22c55e' }} /> : <Copy className="h-3.5 w-3.5" />}
                 {copied ? 'Copiado' : 'Copiar'}
               </button>

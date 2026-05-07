@@ -16,9 +16,9 @@ export function PublicDeliveryPage() {
   const { token } = useParams<{ token: string }>()
   const { data, isLoading } = usePublicRoute(token!)
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center" style={{ background: '#141414' }}><Loader2 className="h-6 w-6 animate-spin" style={{ color: '#6366f1' }} /></div>
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-bg)' }}><Loader2 className="h-6 w-6 animate-spin" style={{ color: '#6366f1' }} /></div>
   if (!data) return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#141414' }}>
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--color-bg)' }}>
       <div className="text-center flex flex-col items-center gap-3">
         <Truck className="empty-icon" />
         <h1 className="text-[18px] font-bold text-text">Entrega não encontrada</h1>
@@ -32,8 +32,8 @@ export function PublicDeliveryPage() {
   const StatusIcon = status.icon
 
   return (
-    <div className="min-h-screen" style={{ background: '#141414' }}>
-      <div className="border-b px-4 py-5" style={{ background: '#1c1c1c', borderColor: '#303030' }}>
+    <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+      <div className="border-b px-4 py-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-2 mb-1">
             <Truck className="h-4 w-4" style={{ color: '#6366f1' }} />
@@ -44,7 +44,7 @@ export function PublicDeliveryPage() {
       </div>
 
       <div className="max-w-lg mx-auto p-4 space-y-3">
-        <div className="rounded-[10px] border p-4" style={{ background: '#1c1c1c', borderColor: '#303030' }}>
+        <div className="rounded-[10px] border p-4" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="flex items-center gap-3">
             <div className={cn('badge', status.badgeClass)}>
               <StatusIcon className="h-3 w-3" />
@@ -53,21 +53,21 @@ export function PublicDeliveryPage() {
           </div>
         </div>
 
-        <div className="rounded-[10px] border p-4 space-y-3" style={{ background: '#1c1c1c', borderColor: '#303030' }}>
+        <div className="rounded-[10px] border p-4 space-y-3" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           {route.customer && <div><p className="text-[12px] text-text-3">Cliente</p><p className="text-[14px] font-medium text-text">{route.customer.name}</p></div>}
           {route.delivery_date && <div><p className="text-[12px] text-text-3">Data</p><p className="text-[14px] font-medium text-text">{formatDate(route.delivery_date)}</p></div>}
           {route.address_destination && <div><p className="text-[12px] text-text-3">Endereço</p><p className="text-[14px] font-medium text-text">{route.address_destination}</p></div>}
         </div>
 
         {attachments.length > 0 && (
-          <div className="rounded-[10px] border overflow-hidden" style={{ background: '#1c1c1c', borderColor: '#303030' }}>
-            <div className="px-5 py-4 border-b" style={{ borderColor: '#303030' }}>
+          <div className="rounded-[10px] border overflow-hidden" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+            <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
               <h3 className="text-[14px] font-semibold text-text">Comprovantes</h3>
             </div>
             <div>
               {attachments.map((att, i) => (
-                <div key={att.id} className={cn('flex items-center gap-3 px-5 py-[14px]', i < attachments.length - 1 && 'border-b')} style={{ borderColor: '#303030' }}>
-                  <div className="flex items-center justify-center rounded-[8px] shrink-0 overflow-hidden" style={{ width: 40, height: 40, background: '#141414' }}>
+                <div key={att.id} className={cn('flex items-center gap-3 px-5 py-[14px]', i < attachments.length - 1 && 'border-b')} style={{ borderColor: 'var(--color-border)' }}>
+                  <div className="flex items-center justify-center rounded-[8px] shrink-0 overflow-hidden" style={{ width: 40, height: 40, background: 'var(--color-bg)' }}>
                     {att.file_type?.startsWith('image/') ? <img src={att.file_url} alt={att.file_name} className="h-full w-full object-cover" /> : <FileText className="h-5 w-5 text-text-3" />}
                   </div>
                   <span className="text-[14px] flex-1 truncate text-text">{att.file_name}</span>
