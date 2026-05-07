@@ -3,38 +3,25 @@ import { useAuth } from '@/hooks/useAuth'
 import { Truck, ArrowRight, Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export function LoginPage() {
-  const { signIn, signUp } = useAuth()
+  const { signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email || !password) return
-    if (password.length < 6) { setError('A senha deve ter pelo menos 6 caracteres'); return }
-    
     setLoading(true)
     setError('')
-    
-    try {
-      if (isSignUp) {
-        const { error: err } = await signUp(email, password)
-        if (err) { setError(err.message) } 
+    const { error: err } = await signIn(email, password)
+    if (err) {
+      if (err.message.includes('Invalid login')) {
+        setError('E-mail ou senha incorretos')
       } else {
-        const { error: err } = await signIn(email, password)
-        if (err) { 
-          if (err.message.includes('Invalid login')) {
-            setError('E-mail ou senha incorretos')
-          } else {
-            setError(err.message) 
-          }
-        }
+        setError(err.message)
       }
-    } catch (err: any) {
-      setError(err?.message || 'Erro inesperado')
     }
     setLoading(false)
   }
@@ -60,10 +47,6 @@ export function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 16, padding: 32 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f5f5f5', marginBottom: 24, textAlign: 'center' }}>
-            {isSignUp ? 'Criar conta' : 'Entrar'}
-          </h2>
-
           {/* Email */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>E-mail</label>
@@ -93,7 +76,6 @@ export function LoginPage() {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••"
                 required
-                minLength={6}
                 style={{
                   width: '100%', borderRadius: 10, border: '1px solid #303030',
                   paddingLeft: 42, paddingRight: 44, paddingTop: 12, paddingBottom: 12,
@@ -126,16 +108,12 @@ export function LoginPage() {
               transition: 'all 150ms',
             }}
           >
-            {loading ? <Loader2 style={{ width: 18, height: 18, animation: 'spin 1s linear infinite' }} /> : <><span>{isSignUp ? 'Criar conta' : 'Entrar'}</span><ArrowRight style={{ width: 16, height: 16 }} /></>}
+            {loading ? <Loader2 style={{ width: 18, height: 18, animation: 'spin 1s linear infinite' }} /> : <><span>Entrar</span><ArrowRight style={{ width: 16, height: 16 }} /></>}
           </button>
 
-          <div style={{ textAlign: 'center', marginTop: 20 }}>
-            <button type="button" onClick={() => { setIsSignUp(!isSignUp); setError('') }}
-              style={{ background: 'transparent', border: 'none', fontSize: 13, fontWeight: 500, color: '#6366f1', cursor: 'pointer' }}
-            >
-              {isSignUp ? '← Já tenho uma conta' : 'Criar nova conta →'}
-            </button>
-          </div>
+          <p style={{ textAlign: 'center', fontSize: 12, color: '#444', marginTop: 16 }}>
+            Acesso restrito a convidados
+          </p>
         </form>
       </div>
     </div>

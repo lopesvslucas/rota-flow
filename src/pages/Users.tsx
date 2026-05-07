@@ -114,20 +114,42 @@ const labelStyle: React.CSSProperties = {
 function InviteModal({ companyId, onClose }: { companyId: string; onClose: () => void }) {
   const queryClient = useQueryClient()
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [role, setRole] = useState<UserRole>('viewer')
   const [perms, setPerms] = useState({ financeiro: false, rotas: false, usuarios: false })
   const [loading, setLoading] = useState(false)
 
   async function handleInvite() {
-    if (!email) return
+    if (!email || !password) return
+    if (password.length < 6) { toast.error('Senha deve ter pelo menos 6 caracteres'); return }
     setLoading(true)
     try {
-      const { error } = await supabase.from('users').insert({ id: crypto.randomUUID(), company_id: companyId, email, name: null, role, permissions: perms })
+      // 1. Create auth user via signup
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { invited: true } },
+      })
+
+      if (authError) throw authError
+
+      const userId = authData.user?.id ?? crypto.randomUUID()
+
+      // 2. Create profile in users table
+      const { error } = await supabase.from('users').insert({
+        id: userId,
+        company_id: companyId,
+        email,
+        name: email.split('@')[0],
+        role,
+        permissions: perms,
+      })
       if (error) throw error
+
       queryClient.invalidateQueries({ queryKey: ['company-users'] })
-      toast.success('Convite registrado!')
+      toast.success(`Usuário convidado! Senha: ${password}`)
       onClose()
-    } catch { toast.error('Erro ao convidar') }
+    } catch (err: any) { toast.error(err?.message || 'Erro ao convidar') }
     setLoading(false)
   }
 
@@ -147,6 +169,10 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={labelStyle}>E-mail</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" style={inputStyle} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>Senha inicial</label>
+            <input type="text" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" style={inputStyle} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={labelStyle}>Função</label>
