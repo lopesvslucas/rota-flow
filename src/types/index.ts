@@ -18,6 +18,7 @@ export interface User {
   company_id: string
   email: string
   name: string | null
+  tag: string | null
   role: UserRole
   permissions: UserPermissions
   created_at: string

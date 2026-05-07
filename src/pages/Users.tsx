@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getRoleLabel, getRoleBadgeColor } from '@/lib/permissions'
-import { UserPlus, Trash2, Loader2, Shield, X, Users as UsersIcon } from 'lucide-react'
+import { UserPlus, Trash2, Loader2, Shield, X, Users as UsersIcon, Tag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { User } from '@/types'
@@ -69,7 +69,17 @@ export function UsersPage() {
                     {u.name?.charAt(0)?.toUpperCase() ?? u.email.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-medium truncate text-text">{u.name ?? u.email}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[14px] font-medium truncate text-text">{u.name ?? u.email}</p>
+                      {u.tag && (
+                        <span style={{
+                          padding: '1px 8px', borderRadius: 5, fontSize: 10, fontWeight: 600,
+                          background: '#8b5cf615', color: '#8b5cf6', whiteSpace: 'nowrap',
+                        }}>
+                          {u.tag}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[11px] text-text-3 mt-0.5 truncate">{u.email}</p>
                   </div>
                   <span className={cn('badge hidden sm:inline-flex', getRoleBadgeColor(u.role))}>{getRoleLabel(u.role)}</span>
@@ -114,25 +124,24 @@ const labelStyle: React.CSSProperties = {
 function InviteModal({ companyId, onClose }: { companyId: string; onClose: () => void }) {
   const queryClient = useQueryClient()
   const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const [tag, setTag] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleInvite() {
-    if (!email || !password) return
+    if (!email || !password || !name.trim()) return
     if (password.length < 6) { toast.error('Senha deve ter pelo menos 6 caracteres'); return }
     setLoading(true)
     try {
-      // Generate a placeholder UUID for the invited user profile.
-      // When they sign up via the login page, useAuth will match by email
-      // and update the ID to their real auth ID.
       const placeholderId = crypto.randomUUID()
 
-      // Insert profile in users table (no auth.signUp to avoid logging out the admin)
       const { error } = await supabase.from('users').insert({
         id: placeholderId,
         company_id: companyId,
         email,
-        name: email.split('@')[0],
+        name: name.trim(),
+        tag: tag.trim() || null,
         role: 'admin',
         permissions: { financeiro: true, rotas: true, usuarios: true },
       })
@@ -144,6 +153,8 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
     } catch (err: any) { toast.error(err?.message || 'Erro ao convidar') }
     setLoading(false)
   }
+
+  const canSubmit = email && name.trim() && password && password.length >= 6
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
@@ -157,16 +168,36 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
         </div>
 
         {/* Body */}
-        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Name */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={labelStyle}>E-mail</label>
+            <label style={labelStyle}>Nome completo *</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome do usuário" style={inputStyle} />
+          </div>
+          {/* Email */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>E-mail *</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" style={inputStyle} />
           </div>
+          {/* Tag */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={labelStyle}>Senha de acesso</label>
-            <input type="text" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" style={inputStyle} />
-            <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>O usuário usará essa senha para fazer o primeiro login</p>
+            <label style={labelStyle}>
+              Tag <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--color-text-3)' }}>(opcional)</span>
+            </label>
+            <div style={{ position: 'relative' }}>
+              <Tag style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#8b5cf6' }} />
+              <input type="text" value={tag} onChange={e => setTag(e.target.value)} placeholder="Ex: CEO, Gerente, Financeiro..."
+                style={{ ...inputStyle, paddingLeft: 34 }} />
+            </div>
+            <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: -2 }}>Identificação visual na lista de usuários</p>
           </div>
+          {/* Password */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>Senha de acesso *</label>
+            <input type="text" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" style={inputStyle} />
+            <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: -2 }}>O usuário usará essa senha para fazer o primeiro login</p>
+          </div>
+          {/* Role badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#6366f110', borderRadius: 8, border: '1px solid #6366f130' }}>
             <Shield className="h-4 w-4" style={{ color: '#6366f1', flexShrink: 0 }} />
             <div>
@@ -181,8 +212,8 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
           <button onClick={onClose} style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             Cancelar
           </button>
-          <button onClick={handleInvite} disabled={loading || !email || !password || password.length < 6}
-            style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: (loading || !email || !password || password.length < 6) ? 0.5 : 1 }}
+          <button onClick={handleInvite} disabled={loading || !canSubmit}
+            style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: (loading || !canSubmit) ? 0.5 : 1 }}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar Convite'}
           </button>
