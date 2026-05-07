@@ -68,6 +68,8 @@ export interface Route {
   amount: number | null
   public_token: string
   public_link_active: boolean
+  payment_confirmed: boolean
+  payment_confirmed_at: string | null
   created_at: string
   updated_at: string
   customer?: Customer

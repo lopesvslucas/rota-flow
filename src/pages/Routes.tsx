@@ -27,7 +27,7 @@ export function RoutesPage() {
   const todayRoutes = routes?.filter(r => r.delivery_date === today).length ?? 0
   const emAndamento = routes?.filter(r => r.status === 'em_andamento').length ?? 0
   const entregues = routes?.filter(r => r.status === 'entregue').length ?? 0
-  const faturamento = routes?.filter(r => r.status === 'entregue').reduce((s, r) => s + Number(r.amount ?? 0), 0) ?? 0
+  const faturamento = routes?.filter(r => r.payment_confirmed).reduce((s, r) => s + Number(r.amount ?? 0), 0) ?? 0
 
   const borderColor = 'var(--color-border)'
   const surfaceBg = 'var(--color-surface)'

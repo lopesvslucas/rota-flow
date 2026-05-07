@@ -2,9 +2,12 @@ import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useRoute, useUpdateRoute, useRouteAttachments, useUploadAttachment, useDeleteAttachment, useDeleteRoute } from '@/hooks/useRoutes'
+import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/formatters'
 import { useTheme } from '@/hooks/useTheme'
-import { ArrowLeft, Upload, Download, Trash2, Link2, Copy, Check, Loader2, MapPin, User, Calendar, FileText, Truck, DollarSign, StickyNote, ExternalLink } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { ArrowLeft, Upload, Download, Trash2, Link2, Copy, Check, Loader2, MapPin, User, Calendar, FileText, Truck, DollarSign, StickyNote, ExternalLink, BadgeCheck, CircleDollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { RouteStatus } from '@/types'
@@ -25,9 +28,12 @@ export function RouteDetailPage() {
   const uploadAttachment = useUploadAttachment()
   const deleteAttachment = useDeleteAttachment()
   const deleteRoute = useDeleteRoute()
+  const { company, user } = useAuth()
+  const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [copied, setCopied] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [confirmingPayment, setConfirmingPayment] = useState(false)
   const { theme } = useTheme()
   const d = theme === 'dark'
 
@@ -40,6 +46,39 @@ export function RouteDetailPage() {
   async function handleStatusChange(status: RouteStatus) {
     try { await updateRoute.mutateAsync({ id: id!, status }); toast.success('Status atualizado') }
     catch { toast.error('Erro ao atualizar') }
+  }
+
+  async function handleConfirmPayment() {
+    if (!company || !user || !route) return
+    setConfirmingPayment(true)
+    try {
+      const today = new Date().toISOString().split('T')[0]
+
+      // 1. Mark route as payment confirmed
+      await updateRoute.mutateAsync({
+        id: id!,
+        payment_confirmed: true,
+        payment_confirmed_at: today,
+      })
+
+      // 2. Auto-create a financial transaction (entrada) for the confirmed amount
+      if (route.amount && Number(route.amount) > 0) {
+        await supabase.from('transactions').insert({
+          company_id: company.id,
+          type: 'entrada',
+          amount: Number(route.amount),
+          description: `Pagamento: ${route.title}${route.customer ? ` - ${route.customer.name}` : ''}`,
+          date: today,
+          created_by: user.id,
+        })
+        queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      }
+
+      toast.success('Pagamento confirmado e registrado no financeiro!')
+    } catch {
+      toast.error('Erro ao confirmar pagamento')
+    }
+    setConfirmingPayment(false)
   }
 
   async function handleTogglePublicLink() {
@@ -65,7 +104,6 @@ export function RouteDetailPage() {
   }
 
   const publicUrl = `${window.location.origin}/entrega/${route.public_token}`
-
 
   return (
     <AppLayout title="Detalhe da Rota">
@@ -115,6 +153,53 @@ export function RouteDetailPage() {
               )
             })}
           </div>
+
+          {/* Payment confirmation banner */}
+          {route.status === 'entregue' && route.amount && Number(route.amount) > 0 && (
+            <div style={{ padding: '16px 24px', borderBottom: `1px solid ${borderColor}` }}>
+              {route.payment_confirmed ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: '#22c55e10', border: '1px solid #22c55e25', borderRadius: 10 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: '#22c55e20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <BadgeCheck style={{ width: 20, height: 20, color: '#22c55e' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#22c55e' }}>Pagamento confirmado</p>
+                    <p style={{ fontSize: 12, color: 'var(--color-text-2)', marginTop: 2 }}>
+                      {route.payment_confirmed_at ? `Confirmado em ${formatDate(route.payment_confirmed_at)}` : 'Registrado no financeiro'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: '#f59e0b10', border: '1px solid #f59e0b25', borderRadius: 10 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: '#f59e0b20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <CircleDollarSign style={{ width: 20, height: 20, color: '#f59e0b' }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#f59e0b' }}>Aguardando pagamento</p>
+                    <p style={{ fontSize: 12, color: 'var(--color-text-2)', marginTop: 2 }}>
+                      Confirme o recebimento de {formatCurrency(Number(route.amount))} para registrar no financeiro
+                    </p>
+                  </div>
+                  <button onClick={handleConfirmPayment} disabled={confirmingPayment}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+                      borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 700,
+                      color: 'white', background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                      cursor: confirmingPayment ? 'not-allowed' : 'pointer',
+                      opacity: confirmingPayment ? 0.5 : 1,
+                      boxShadow: '0 4px 14px rgba(34,197,94,0.3)',
+                      transition: 'all 150ms', whiteSpace: 'nowrap' as const,
+                    }}
+                    onMouseEnter={e => { if (!confirmingPayment) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(34,197,94,0.4)' } }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(34,197,94,0.3)' }}
+                  >
+                    {confirmingPayment ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
+                    Confirmar Pagamento
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Info grid */}
           <div style={{ padding: '16px 24px' }}>

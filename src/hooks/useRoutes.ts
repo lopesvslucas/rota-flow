@@ -131,6 +131,8 @@ export function useUpdateRoute() {
       notes?: string | null
       amount?: number | null
       public_link_active?: boolean
+      payment_confirmed?: boolean
+      payment_confirmed_at?: string | null
     }) => {
       const { error } = await supabase.from('routes').update(data).eq('id', id)
       if (error) throw error
