@@ -6,7 +6,7 @@ import { useTransactions, useCategories, useDeleteTransaction, useUpdateTransact
 import { formatCurrency, formatDate, formatMonthYear, getMonthDateRange } from '@/lib/formatters'
 import {
   TrendingUp, TrendingDown, Wallet, Plus, Minus, ChevronLeft, ChevronRight,
-  Trash2, Tag, ArrowUpCircle, ArrowDownCircle, Loader2, PackageOpen, Pencil, X
+  Trash2, Tag, ArrowUpCircle, ArrowDownCircle, Loader2, PackageOpen, Pencil, X, FileText
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -216,6 +216,11 @@ export function FinancialPage() {
                           </span>
                         )}
                         <span className="text-[11px] text-text-3">{formatDate(tx.date)}</span>
+                        {tx.receipt_url && (
+                          <a href={tx.receipt_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[11px] text-accent hover:underline" onClick={e => e.stopPropagation()}>
+                            <FileText className="h-3 w-3" /> Comprovante
+                          </a>
+                        )}
                       </div>
                     </div>
                     <p className={cn('text-[14px] font-bold tabular-nums whitespace-nowrap')} style={{ color: tx.type === 'entrada' ? '#22c55e' : '#ef4444' }}>

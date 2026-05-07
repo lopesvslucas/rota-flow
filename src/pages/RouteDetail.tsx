@@ -34,6 +34,7 @@ export function RouteDetailPage() {
   const [copied, setCopied] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmingPayment, setConfirmingPayment] = useState(false)
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false)
   const { theme } = useTheme()
   const d = theme === 'dark'
 
@@ -47,8 +48,6 @@ export function RouteDetailPage() {
     try { await updateRoute.mutateAsync({ id: id!, status }); toast.success('Status atualizado') }
     catch { toast.error('Erro ao atualizar') }
   }
-
-  const [showPaymentPopup, setShowPaymentPopup] = useState(false)
 
   async function handleConfirmPayment(alreadyPaidBefore: boolean) {
     if (!company || !user || !route) return

@@ -39,6 +39,7 @@ export interface Transaction {
   amount: number
   description: string | null
   category_id: string | null
+  receipt_url: string | null
   date: string
   created_by: string | null
   created_at: string

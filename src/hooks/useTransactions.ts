@@ -88,6 +88,7 @@ export function useCreateTransaction() {
       amount: number
       description?: string
       category_id?: string
+      receipt_url?: string
       date: string
     }) => {
       console.log('[CreateTx] company:', company?.id, 'user:', user?.id)
@@ -137,6 +138,7 @@ export function useUpdateTransaction() {
       id: string
       category_id?: string | null
       description?: string | null
+      receipt_url?: string | null
       amount?: number
     }) => {
       const { error } = await supabase.from('transactions').update(data).eq('id', id)
