@@ -141,3 +141,16 @@ input:focus, select:focus, textarea:focus {
   border-color: #6366f1 !important;
   outline: none;
 }
+
+/* ── Responsive ── */
+@media (max-width: 767px) {
+  /* Hide scrollbars on filter tabs */
+  [style*="overflowX"] { -ms-overflow-style: none; scrollbar-width: none; }
+  [style*="overflowX"]::-webkit-scrollbar { display: none; }
+
+  /* Touch-friendly tap targets */
+  button, a { min-height: 36px; }
+
+  /* Prevent text overflow */
+  .truncate { max-width: 100%; }
+}

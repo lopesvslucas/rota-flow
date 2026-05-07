@@ -131,7 +131,7 @@ export function FinancialPage() {
         ) : (
           <>
             {/* Summary cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
               {[
                 { label: `Entradas de ${formatMonthYear(month, year)}`, value: formatCurrency(monthEntradas), icon: TrendingUp, iconColor: '#22c55e', iconBg: '#22c55e20', valueColor: '#22c55e' },
                 { label: `Saídas de ${formatMonthYear(month, year)}`, value: formatCurrency(monthSaidas), icon: TrendingDown, iconColor: '#ef4444', iconBg: '#ef444420', valueColor: '#ef4444' },
@@ -141,14 +141,14 @@ export function FinancialPage() {
                   <div className="flex items-center justify-center rounded-[9px] mb-4" style={{ width: 38, height: 38, background: s.iconBg }}>
                     <s.icon className="h-[18px] w-[18px]" style={{ color: s.iconColor }} />
                   </div>
-                  <p className="text-[34px] font-extrabold leading-none" style={{ color: s.valueColor }}>{s.value}</p>
+                  <p className="text-[22px] md:text-[34px] font-extrabold leading-none" style={{ color: s.valueColor }}>{s.value}</p>
                   <p className="text-[13px] mt-2" style={{ color: 'var(--color-text-2)' }}>{s.label}</p>
                 </div>
               ))}
             </div>
 
             {/* Charts */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
               <div style={{ border: `1px solid ${borderColor}`, borderRadius: 10, padding: 20, background: surfaceBg }}>
                 <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 16 }}>Entradas vs Saídas — {formatMonthYear(month, year)}</h4>
                 <div style={{ height: 220 }}>

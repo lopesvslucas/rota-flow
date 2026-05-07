@@ -42,7 +42,7 @@ export function RoutesPage() {
     <AppLayout title="Rotas">
       <div className="min-w-0">
         {/* Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 20 }}>
           {[
             { label: 'Hoje', value: todayRoutes, icon: Clock, iconColor: '#f59e0b', iconBg: '#f59e0b20' },
             { label: 'Em andamento', value: emAndamento, icon: Truck, iconColor: '#3b82f6', iconBg: '#3b82f620' },
@@ -53,7 +53,7 @@ export function RoutesPage() {
               <div className="flex items-center justify-center rounded-[9px] mb-4" style={{ width: 38, height: 38, background: s.iconBg }}>
                 <s.icon className="h-[18px] w-[18px]" style={{ color: s.iconColor }} />
               </div>
-              <p className="text-[34px] font-extrabold leading-none" style={{ color: 'isMonetary' in s ? s.iconColor : 'var(--color-text)' }}>{s.value}</p>
+              <p className="text-[22px] md:text-[34px] font-extrabold leading-none" style={{ color: 'isMonetary' in s ? s.iconColor : 'var(--color-text)' }}>{s.value}</p>
               <p className="text-[13px] mt-2" style={{ color: 'var(--color-text-2)' }}>{s.label}</p>
             </div>
           ))}
@@ -61,7 +61,7 @@ export function RoutesPage() {
 
         {/* Filter tabs + button */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 10, padding: 4, display: 'inline-flex', gap: 2 }}>
+          <div style={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 10, padding: 4, display: 'flex', gap: 2, overflowX: 'auto', maxWidth: '100%' }}>
             {[
               { value: '', label: 'Todos' },
               { value: 'pendente', label: 'Pendente' },

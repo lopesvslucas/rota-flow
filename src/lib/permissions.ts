@@ -18,7 +18,7 @@ export function canEditFinancial(_user: User | null): boolean {
 
 export function getRoleLabel(role: UserRole): string {
   const labels: Record<UserRole, string> = {
-    owner: 'Proprietário',
+    owner: 'Desenvolvedor',
     admin: 'Administrador',
     driver: 'Motorista',
     viewer: 'Visualizador',

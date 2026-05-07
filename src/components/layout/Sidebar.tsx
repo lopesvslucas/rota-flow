@@ -18,7 +18,6 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
-import { hasPermission, canManageUsers } from '@/lib/permissions'
 
 interface SidebarProps {
   onNavigate?: () => void
@@ -37,11 +36,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
 
-  const filteredItems = navItems.filter(item => {
-    if (!item.permission) return true
-    if (item.permission === 'usuarios') return canManageUsers(user)
-    return hasPermission(user, item.permission)
-  })
+  const filteredItems = navItems
 
   return (
     <aside

@@ -203,7 +203,7 @@ export function RouteDetailPage() {
 
           {/* Info grid */}
           <div style={{ padding: '16px 24px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+            <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 0 }}>
               {route.customer && (
                 <div style={{ padding: '12px 0', borderBottom: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 32, height: 32, borderRadius: 8, background: '#6366f115', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
