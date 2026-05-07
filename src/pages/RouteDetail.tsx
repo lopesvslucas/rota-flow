@@ -3,16 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useRoute, useUpdateRoute, useRouteAttachments, useUploadAttachment, useDeleteAttachment, useDeleteRoute } from '@/hooks/useRoutes'
 import { formatCurrency, formatDate } from '@/lib/formatters'
-import { ArrowLeft, Upload, Download, Trash2, Link2, Copy, Check, Loader2, MapPin, User, Calendar, FileText, Truck } from 'lucide-react'
+import { useTheme } from '@/hooks/useTheme'
+import { ArrowLeft, Upload, Download, Trash2, Link2, Copy, Check, Loader2, MapPin, User, Calendar, FileText, Truck, DollarSign, StickyNote, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { RouteStatus } from '@/types'
 
-const statuses: { value: RouteStatus; label: string; badgeClass: string }[] = [
-  { value: 'pendente',     label: 'Pendente',      badgeClass: 'badge-pendente' },
-  { value: 'em_andamento', label: 'Em andamento',  badgeClass: 'badge-andamento' },
-  { value: 'entregue',     label: 'Entregue',      badgeClass: 'badge-entregue' },
-  { value: 'cancelado',    label: 'Cancelado',     badgeClass: 'badge-cancelado' },
+const statuses: { value: RouteStatus; label: string; color: string; bg: string; border: string }[] = [
+  { value: 'pendente',     label: 'Pendente',      color: '#f59e0b', bg: '#f59e0b15', border: '#f59e0b30' },
+  { value: 'em_andamento', label: 'Em andamento',  color: '#3b82f6', bg: '#3b82f615', border: '#3b82f630' },
+  { value: 'entregue',     label: 'Entregue',      color: '#22c55e', bg: '#22c55e15', border: '#22c55e30' },
+  { value: 'cancelado',    label: 'Cancelado',     color: '#888888', bg: '#88888815', border: '#88888830' },
 ]
 
 export function RouteDetailPage() {
@@ -27,6 +28,11 @@ export function RouteDetailPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [copied, setCopied] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const { theme } = useTheme()
+  const d = theme === 'dark'
+
+  const borderColor = 'var(--color-border)'
+  const surfaceBg = 'var(--color-surface)'
 
   if (isLoading) return <AppLayout title="Carregando..."><div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div></AppLayout>
   if (!route) return <AppLayout title="Rota não encontrada"><p className="text-text-2">Rota não encontrada</p></AppLayout>
@@ -60,56 +66,135 @@ export function RouteDetailPage() {
 
   const publicUrl = `${window.location.origin}/entrega/${route.public_token}`
 
+
   return (
     <AppLayout title="Detalhe da Rota">
       <div className="space-y-4 max-w-2xl">
         <button onClick={() => navigate('/rotas')} className="flex items-center gap-1.5 text-[13px] text-text-2 hover:text-text transition-colors duration-150">
-          <ArrowLeft className="h-4 w-4" /> Voltar
+          <ArrowLeft className="h-4 w-4" /> Voltar para Rotas
         </button>
 
         {/* Header card */}
-        <div className="rounded-[10px] border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-[20px] font-bold text-text">{route.title}</h3>
-              {route.amount && <p className="text-[18px] font-bold mt-1" style={{ color: '#22c55e' }}>{formatCurrency(Number(route.amount))}</p>}
+        <div className="rounded-[12px] border overflow-hidden" style={{ background: surfaceBg, borderColor }}>
+          {/* Title bar */}
+          <div style={{ padding: '20px 24px', borderBottom: `1px solid ${borderColor}` }}>
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-[22px] font-bold text-text">{route.title}</h3>
+                {route.amount && <p className="text-[20px] font-bold mt-1" style={{ color: '#22c55e' }}>{formatCurrency(Number(route.amount))}</p>}
+              </div>
+              <button onClick={handleDeleteRoute} disabled={deleting}
+                style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${borderColor}`, background: 'transparent', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', transition: 'all 150ms' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef444450'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = '#ef444410' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = borderColor; e.currentTarget.style.color = 'var(--color-text-3)'; e.currentTarget.style.background = 'transparent' }}
+              >
+                {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                Excluir
+              </button>
             </div>
-            <button onClick={handleDeleteRoute} disabled={deleting} className="p-2 rounded-[7px] text-text-3 hover:text-red hover:bg-surface-2 transition-colors duration-150">
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-            </button>
           </div>
 
           {/* Status pipeline */}
-          <div className="flex gap-2 flex-wrap mb-5">
-            {statuses.map(s => (
-              <button key={s.value} onClick={() => handleStatusChange(s.value)}
-                className={cn(
-                  'badge cursor-pointer transition-colors duration-150',
-                  route.status === s.value ? s.badgeClass : 'border text-text-3 hover:bg-surface-2'
-                )}
-                style={route.status !== s.value ? { borderColor: 'var(--color-border)' } : undefined}
-              >
-                {s.label}
-              </button>
-            ))}
+          <div style={{ padding: '16px 24px', borderBottom: `1px solid ${borderColor}`, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {statuses.map(s => {
+              const active = route.status === s.value
+              return (
+                <button key={s.value} onClick={() => handleStatusChange(s.value)}
+                  style={{
+                    padding: '7px 16px', borderRadius: 20, fontSize: 13, fontWeight: active ? 600 : 500,
+                    background: active ? s.bg : 'transparent',
+                    border: `1px solid ${active ? s.border : borderColor}`,
+                    color: active ? s.color : 'var(--color-text-3)',
+                    cursor: 'pointer', transition: 'all 150ms', whiteSpace: 'nowrap' as const,
+                  }}
+                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = s.bg; e.currentTarget.style.color = s.color; e.currentTarget.style.borderColor = s.border } }}
+                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-3)'; e.currentTarget.style.borderColor = borderColor } }}
+                >
+                  {s.label}
+                </button>
+              )
+            })}
           </div>
 
-          {/* Info */}
-          <div className="grid grid-cols-2 gap-3 text-[14px]">
-            {route.customer && <div className="flex items-center gap-2 text-text-2"><User className="h-4 w-4 text-text-3" />{route.customer.name}</div>}
-            {route.driver && <div className="flex items-center gap-2 text-text-2"><Truck className="h-4 w-4 text-text-3" />{route.driver.name}</div>}
-            {route.delivery_date && <div className="flex items-center gap-2 text-text-2"><Calendar className="h-4 w-4 text-text-3" />{formatDate(route.delivery_date)}</div>}
-            {route.address_destination && <div className="flex items-center gap-2 text-text-2 col-span-2"><MapPin className="h-4 w-4 shrink-0 text-text-3" />{route.address_destination}</div>}
-            {route.notes && <div className="flex items-start gap-2 text-text-2 col-span-2"><FileText className="h-4 w-4 shrink-0 mt-0.5 text-text-3" />{route.notes}</div>}
+          {/* Info grid */}
+          <div style={{ padding: '16px 24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+              {route.customer && (
+                <div style={{ padding: '12px 0', borderBottom: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#6366f115', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <User style={{ width: 14, height: 14, color: '#6366f1' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 500 }}>Cliente</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginTop: 1 }}>{route.customer.name}</p>
+                  </div>
+                </div>
+              )}
+              {route.driver && (
+                <div style={{ padding: '12px 0', borderBottom: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#3b82f615', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Truck style={{ width: 14, height: 14, color: '#3b82f6' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 500 }}>Motorista</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginTop: 1 }}>{route.driver.name}</p>
+                  </div>
+                </div>
+              )}
+              {route.delivery_date && (
+                <div style={{ padding: '12px 0', borderBottom: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f59e0b15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Calendar style={{ width: 14, height: 14, color: '#f59e0b' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 500 }}>Data</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginTop: 1 }}>{formatDate(route.delivery_date)}</p>
+                  </div>
+                </div>
+              )}
+              {route.amount && (
+                <div style={{ padding: '12px 0', borderBottom: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#22c55e15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <DollarSign style={{ width: 14, height: 14, color: '#22c55e' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 500 }}>Valor</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#22c55e', marginTop: 1 }}>{formatCurrency(Number(route.amount))}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            {route.address_destination && (
+              <div style={{ padding: '12px 0', borderBottom: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ef444415', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <MapPin style={{ width: 14, height: 14, color: '#ef4444' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 500 }}>Endereço</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginTop: 1 }}>{route.address_destination}</p>
+                </div>
+              </div>
+            )}
+            {route.notes && (
+              <div style={{ padding: '12px 0', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#8b5cf615', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <StickyNote style={{ width: 14, height: 14, color: '#8b5cf6' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 500 }}>Observações</p>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text)', marginTop: 1, lineHeight: 1.5 }}>{route.notes}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Attachments */}
-        <div className="rounded-[10px] border overflow-hidden" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="rounded-[12px] border overflow-hidden" style={{ background: surfaceBg, borderColor }}>
+          <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor }}>
             <h4 className="text-[14px] font-semibold text-text">Comprovantes</h4>
             <button onClick={() => fileInputRef.current?.click()} disabled={uploadAttachment.isPending}
-              className="flex items-center gap-1.5 px-[14px] py-[6px] text-[13px] font-medium rounded-[8px] text-white disabled:opacity-50 transition-colors duration-150 hover:brightness-110" style={{ background: '#6366f1' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', color: 'white', background: '#6366f1', cursor: 'pointer', opacity: uploadAttachment.isPending ? 0.5 : 1, transition: 'all 150ms' }}>
               {uploadAttachment.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
               Upload
             </button>
@@ -122,20 +207,24 @@ export function RouteDetailPage() {
               <p className="text-[13px] text-text-3">Faça upload de imagens ou PDFs</p>
             </div>
           ) : (
-            <div className="p-5 grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-3">
               {attachments.map(att => (
-                <div key={att.id} className="rounded-[10px] border p-3 hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: 'var(--color-border)' }}>
-                  <div className="flex items-center justify-center h-20 mb-2 rounded-[8px] overflow-hidden" style={{ background: 'var(--color-bg)' }}>
+                <div key={att.id} className="rounded-[10px] border overflow-hidden hover:border-accent/30 transition-colors duration-150" style={{ borderColor, background: 'var(--color-bg)' }}>
+                  <div className="flex items-center justify-center h-24 overflow-hidden">
                     {att.file_type?.startsWith('image/') ? <img src={att.file_url} alt={att.file_name} className="h-full w-full object-cover" /> : <FileText className="h-8 w-8 text-text-3" />}
                   </div>
-                  <p className="text-[12px] truncate mb-2 text-text-2">{att.file_name}</p>
-                  <div className="flex gap-1">
-                    <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1 py-1 text-[10px] rounded-[6px] border text-text-2 hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: 'var(--color-border)' }}>
-                      <Download className="h-3 w-3" /> Baixar
-                    </a>
-                    <button onClick={() => deleteAttachment.mutate({ id: att.id, routeId: id! })} className="p-1 rounded-[6px] border text-text-3 hover:text-red hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: 'var(--color-border)' }}>
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                  <div style={{ padding: '10px 12px', borderTop: `1px solid ${borderColor}` }}>
+                    <p className="text-[11px] truncate mb-2 text-text-2">{att.file_name}</p>
+                    <div className="flex gap-1.5">
+                      <a href={att.file_url} target="_blank" rel="noopener noreferrer"
+                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '5px 0', fontSize: 11, fontWeight: 500, borderRadius: 6, border: `1px solid ${borderColor}`, color: 'var(--color-text-2)', textDecoration: 'none', transition: 'all 150ms' }}>
+                        <Download className="h-3 w-3" /> Baixar
+                      </a>
+                      <button onClick={() => deleteAttachment.mutate({ id: att.id, routeId: id! })}
+                        style={{ padding: '5px 8px', borderRadius: 6, border: `1px solid ${borderColor}`, background: 'transparent', color: 'var(--color-text-3)', cursor: 'pointer', transition: 'all 150ms' }}>
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -144,23 +233,38 @@ export function RouteDetailPage() {
         </div>
 
         {/* Public link */}
-        <div className="rounded-[10px] border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-[14px] font-semibold flex items-center gap-2 text-text"><Link2 className="h-4 w-4" style={{ color: '#6366f1' }} /> Link Público</h4>
+        <div className="rounded-[12px] border overflow-hidden" style={{ background: surfaceBg, borderColor }}>
+          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#6366f115', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Link2 style={{ width: 14, height: 14, color: '#6366f1' }} />
+              </div>
+              <div>
+                <h4 className="text-[14px] font-semibold text-text">Link Público</h4>
+                <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
+                  {route.public_link_active ? 'Ativo — qualquer pessoa com o link pode ver' : 'Desativado'}
+                </p>
+              </div>
+            </div>
             <button onClick={handleTogglePublicLink}
-              className={cn('relative w-11 h-6 rounded-full transition-colors duration-150')}
-              style={{ background: route.public_link_active ? '#22c55e' : '#303030' }}
+              className="relative w-11 h-6 rounded-full transition-colors duration-150"
+              style={{ background: route.public_link_active ? '#22c55e' : (d ? '#303030' : '#e2e2e5') }}
             >
               <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all duration-150', route.public_link_active ? 'left-[22px]' : 'left-0.5')} />
             </button>
           </div>
           {route.public_link_active && (
-            <div className="flex items-center gap-2">
-              <input readOnly value={publicUrl} className="flex-1 rounded-[8px] border px-[14px] py-[10px] text-[12px] text-text-2 focus:outline-none" style={{ background: 'var(--color-surface-2)', borderColor: 'var(--color-border)' }} />
-              <button onClick={copyPublicLink} className="flex items-center gap-1.5 px-[14px] py-[10px] text-[12px] font-medium rounded-[8px] border text-text-2 hover:bg-surface-2 transition-colors duration-150" style={{ borderColor: 'var(--color-border)' }}>
+            <div style={{ padding: '0 24px 16px', display: 'flex', gap: 8 }}>
+              <input readOnly value={publicUrl} style={{ flex: 1, padding: '9px 14px', borderRadius: 8, border: `1px solid ${borderColor}`, background: 'var(--color-bg)', color: 'var(--color-text-2)', fontSize: 12, outline: 'none' }} />
+              <button onClick={copyPublicLink}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 8, border: `1px solid ${borderColor}`, background: 'transparent', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all 150ms', whiteSpace: 'nowrap' as const }}>
                 {copied ? <Check className="h-3.5 w-3.5" style={{ color: '#22c55e' }} /> : <Copy className="h-3.5 w-3.5" />}
                 {copied ? 'Copiado' : 'Copiar'}
               </button>
+              <a href={publicUrl} target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', padding: '9px 14px', borderRadius: 8, border: `1px solid ${borderColor}`, background: 'transparent', color: 'var(--color-text-2)', textDecoration: 'none', cursor: 'pointer', transition: 'all 150ms' }}>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
             </div>
           )}
         </div>

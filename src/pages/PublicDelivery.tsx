@@ -50,9 +50,15 @@ export function PublicDeliveryPage() {
       <div style={{ position: 'relative', borderBottom: '1px solid #1e1e1e', padding: '24px 16px 20px', background: '#141414' }}>
         <div style={{ maxWidth: 520, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #6366f1, #4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
-              <Truck style={{ width: 18, height: 18, color: 'white' }} />
-            </div>
+            {company.logo_url ? (
+              <div style={{ width: 40, height: 40, borderRadius: 10, overflow: 'hidden', flexShrink: 0, border: '1px solid #282828' }}>
+                <img src={company.logo_url} alt={company.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            ) : (
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #6366f1, #4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(99,102,241,0.3)', flexShrink: 0 }}>
+                <Truck style={{ width: 18, height: 18, color: 'white' }} />
+              </div>
+            )}
             <div>
               <p style={{ fontSize: 15, fontWeight: 700, color: '#f5f5f5' }}>{company.name}</p>
               <p style={{ fontSize: 11, color: '#555', fontWeight: 500 }}>Rastreamento de entrega</p>

@@ -54,7 +54,7 @@ export function useRoute(id: string) {
 export function usePublicRoute(token: string) {
   return useQuery({
     queryKey: ['public-route', token],
-    queryFn: async (): Promise<{ route: Route; company: { name: string }; attachments: RouteAttachment[] } | null> => {
+    queryFn: async (): Promise<{ route: Route; company: { name: string; logo_url: string | null }; attachments: RouteAttachment[] } | null> => {
       const { data: route, error } = await supabase
         .from('routes')
         .select('*, customer:customers(*)')
@@ -66,7 +66,7 @@ export function usePublicRoute(token: string) {
 
       const { data: company } = await supabase
         .from('companies')
-        .select('name')
+        .select('name, logo_url')
         .eq('id', route.company_id)
         .single()
 
@@ -78,7 +78,7 @@ export function usePublicRoute(token: string) {
 
       return {
         route,
-        company: company ?? { name: 'Empresa' },
+        company: company ?? { name: 'Empresa', logo_url: null },
         attachments: attachments ?? [],
       }
     },

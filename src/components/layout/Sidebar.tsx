@@ -5,6 +5,7 @@ import {
   DollarSign,
   Truck,
   Users,
+  Settings,
   LogOut,
   Sun,
   Moon,
@@ -28,6 +29,7 @@ const navItems = [
   { to: '/financeiro', icon: DollarSign, label: 'Financeiro', permission: 'financeiro' as const },
   { to: '/rotas', icon: Truck, label: 'Rotas', permission: 'rotas' as const },
   { to: '/usuarios', icon: Users, label: 'Usuários', permission: 'usuarios' as const },
+  { to: '/configuracoes', icon: Settings, label: 'Configurações', permission: null },
 ]
 
 export function Sidebar({ onNavigate }: SidebarProps) {

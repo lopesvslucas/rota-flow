@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase'
 import { Truck, ArrowRight, Loader2, Mail, Lock, Eye, EyeOff, KeyRound, ChevronLeft } from 'lucide-react'
 import { toast } from 'sonner'
 
-type PageMode = 'login' | 'reset-request' | 'reset-confirm'
+type PageMode = 'login' | 'reset-request'
 
 export function LoginPage() {
-  const { signIn, signUp } = useAuth()
+  const { signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,32 +16,18 @@ export function LoginPage() {
   const [mode, setMode] = useState<PageMode>('login')
   const [resetEmail, setResetEmail] = useState('')
   const [resetSent, setResetSent] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email || !password) return
     setLoading(true)
     setError('')
-
-    if (isSignUp) {
-      const { error: err } = await signUp(email, password)
-      if (err) {
-        setError(err.message)
+    const { error: err } = await signIn(email, password)
+    if (err) {
+      if (err.message.includes('Invalid login')) {
+        setError('E-mail ou senha incorretos')
       } else {
-        toast.success('Conta criada! Fazendo login...')
-        // Auto-login after signup
-        const { error: loginErr } = await signIn(email, password)
-        if (loginErr) setError(loginErr.message)
-      }
-    } else {
-      const { error: err } = await signIn(email, password)
-      if (err) {
-        if (err.message.includes('Invalid login')) {
-          setError('E-mail ou senha incorretos')
-        } else {
-          setError(err.message)
-        }
+        setError(err.message)
       }
     }
     setLoading(false)
@@ -69,7 +55,6 @@ export function LoginPage() {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: '#0f0f11' }}>
         <div style={{ position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ width: '100%', maxWidth: 400, position: 'relative', zIndex: 1 }}>
-          {/* Logo */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 40 }}>
             <div style={{ width: 60, height: 60, borderRadius: 16, background: 'linear-gradient(135deg, #6366f1, #4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, boxShadow: '0 8px 32px rgba(99,102,241,0.3)' }}>
               <KeyRound style={{ width: 28, height: 28, color: 'white' }} />
@@ -129,17 +114,9 @@ export function LoginPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: '#0f0f11' }}>
       <div style={{ position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 60%)', pointerEvents: 'none' }} />
-
       <div style={{ width: '100%', maxWidth: 400, position: 'relative', zIndex: 1 }}>
-        {/* Logo */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 40 }}>
-          <div style={{
-            width: 60, height: 60, borderRadius: 16,
-            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: 20,
-            boxShadow: '0 8px 32px rgba(99,102,241,0.3)',
-          }}>
+          <div style={{ width: 60, height: 60, borderRadius: 16, background: 'linear-gradient(135deg, #6366f1, #4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, boxShadow: '0 8px 32px rgba(99,102,241,0.3)' }}>
             <Truck style={{ width: 28, height: 28, color: 'white' }} />
           </div>
           <h1 style={{ fontSize: 32, fontWeight: 800, color: '#f5f5f5', letterSpacing: '-0.03em' }}>RotaFlow</h1>
@@ -147,50 +124,28 @@ export function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} style={{ background: '#1c1c1c', border: '1px solid #303030', borderRadius: 16, padding: 32 }}>
-          {/* Email */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>E-mail</label>
             <div style={{ position: 'relative' }}>
               <Mail style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#555' }} />
-              <input
-                type="email" value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="nome@empresa.com"
-                required
-                style={{
-                  width: '100%', borderRadius: 10, border: '1px solid #303030',
-                  paddingLeft: 42, paddingRight: 14, paddingTop: 12, paddingBottom: 12,
-                  fontSize: 14, color: '#f5f5f5', background: '#141414', outline: 'none',
-                }}
-              />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@empresa.com" required
+                style={{ width: '100%', borderRadius: 10, border: '1px solid #303030', paddingLeft: 42, paddingRight: 14, paddingTop: 12, paddingBottom: 12, fontSize: 14, color: '#f5f5f5', background: '#141414', outline: 'none' }} />
             </div>
           </div>
 
-          {/* Password */}
           <div style={{ marginBottom: 12 }}>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Senha</label>
             <div style={{ position: 'relative' }}>
               <Lock style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#555' }} />
-              <input
-                type={showPassword ? 'text' : 'password'} value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••"
-                required
-                style={{
-                  width: '100%', borderRadius: 10, border: '1px solid #303030',
-                  paddingLeft: 42, paddingRight: 44, paddingTop: 12, paddingBottom: 12,
-                  fontSize: 14, color: '#f5f5f5', background: '#141414', outline: 'none',
-                }}
-              />
+              <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••" required
+                style={{ width: '100%', borderRadius: 10, border: '1px solid #303030', paddingLeft: 42, paddingRight: 44, paddingTop: 12, paddingBottom: 12, fontSize: 14, color: '#f5f5f5', background: '#141414', outline: 'none' }} />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#555', cursor: 'pointer', padding: 4 }}
-              >
+                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#555', cursor: 'pointer', padding: 4 }}>
                 {showPassword ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
               </button>
             </div>
           </div>
 
-          {/* Forgot password link */}
           <div style={{ textAlign: 'right', marginBottom: 20 }}>
             <button type="button" onClick={() => { setMode('reset-request'); setError(''); setResetEmail(email) }}
               style={{ background: 'transparent', border: 'none', color: '#6366f1', fontSize: 12, fontWeight: 500, cursor: 'pointer', padding: 0 }}>
@@ -205,27 +160,11 @@ export function LoginPage() {
           )}
 
           <button type="submit" disabled={loading || !email || !password}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '12px 16px', borderRadius: 10, border: 'none',
-              fontSize: 14, fontWeight: 600, color: 'white',
-              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-              boxShadow: '0 4px 14px rgba(99,102,241,0.3)',
-              cursor: (loading || !email || !password) ? 'not-allowed' : 'pointer',
-              opacity: (loading || !email || !password) ? 0.5 : 1,
-              transition: 'all 150ms',
-            }}
-          >
-            {loading ? <Loader2 style={{ width: 18, height: 18, animation: 'spin 1s linear infinite' }} /> : <><span>{isSignUp ? 'Criar conta' : 'Entrar'}</span><ArrowRight style={{ width: 16, height: 16 }} /></>}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, border: 'none', fontSize: 14, fontWeight: 600, color: 'white', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', boxShadow: '0 4px 14px rgba(99,102,241,0.3)', cursor: (loading || !email || !password) ? 'not-allowed' : 'pointer', opacity: (loading || !email || !password) ? 0.5 : 1, transition: 'all 150ms' }}>
+            {loading ? <Loader2 style={{ width: 18, height: 18, animation: 'spin 1s linear infinite' }} /> : <><span>Entrar</span><ArrowRight style={{ width: 16, height: 16 }} /></>}
           </button>
 
-          <div style={{ textAlign: 'center', marginTop: 16 }}>
-            <button type="button" onClick={() => { setIsSignUp(!isSignUp); setError('') }}
-              style={{ background: 'transparent', border: 'none', color: '#555', fontSize: 12, cursor: 'pointer', padding: 0 }}>
-              {isSignUp ? 'Já tem conta? ' : 'Primeiro acesso? '}
-              <span style={{ color: '#6366f1', fontWeight: 600 }}>{isSignUp ? 'Fazer login' : 'Criar conta'}</span>
-            </button>
-          </div>
+          <p style={{ textAlign: 'center', fontSize: 12, color: '#444', marginTop: 16 }}>Acesso restrito a convidados</p>
         </form>
       </div>
     </div>

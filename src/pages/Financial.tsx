@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { TransactionModal } from '@/components/financial/TransactionModal'
 import { CategoryManager } from '@/components/financial/CategoryManager'
-import { useTransactions, useTodayTransactions, useCategories, useDeleteTransaction } from '@/hooks/useTransactions'
+import { useTransactions, useCategories, useDeleteTransaction } from '@/hooks/useTransactions'
 import { formatCurrency, formatDate, formatMonthYear, getMonthDateRange } from '@/lib/formatters'
 import {
   TrendingUp, TrendingDown, Wallet, Plus, Minus, ChevronLeft, ChevronRight,
@@ -29,18 +29,16 @@ export function FinancialPage() {
   const d = theme === 'dark'
 
   const { data: transactions, isLoading } = useTransactions(month, year)
-  const { data: todayTx } = useTodayTransactions()
   const { data: categories } = useCategories()
   const deleteMutation = useDeleteTransaction()
 
-  const todayEntradas = todayTx?.filter(t => t.type === 'entrada').reduce((s, t) => s + Number(t.amount), 0) ?? 0
-  const todaySaidas = todayTx?.filter(t => t.type === 'saida').reduce((s, t) => s + Number(t.amount), 0) ?? 0
+  // Monthly totals
   const monthEntradas = transactions?.filter(t => t.type === 'entrada').reduce((s, t) => s + Number(t.amount), 0) ?? 0
   const monthSaidas = transactions?.filter(t => t.type === 'saida').reduce((s, t) => s + Number(t.amount), 0) ?? 0
   const saldo = monthEntradas - monthSaidas
 
   const dailyData = useMemo(() => {
-    if (!transactions) return []
+    if (!transactions?.length) return []
     const { startDate, endDate } = getMonthDateRange(month, year)
     const days: Record<string, { day: string; entradas: number; saidas: number }> = {}
     const start = new Date(startDate + 'T00:00:00')
@@ -60,7 +58,7 @@ export function FinancialPage() {
   }, [transactions, month, year])
 
   const categoryData = useMemo(() => {
-    if (!transactions) return []
+    if (!transactions?.length) return []
     const map: Record<string, { name: string; value: number; color: string }> = {}
     transactions.forEach(t => {
       const catName = t.category?.name ?? 'Sem categoria'
@@ -80,7 +78,7 @@ export function FinancialPage() {
     catch { toast.error('Erro ao excluir') }
   }
 
-  // Theme-aware colors
+  // Theme-aware
   const gridColor = d ? '#303030' : '#e2e2e5'
   const tickColor = d ? '#555555' : '#999999'
   const borderColor = 'var(--color-border)'
@@ -88,6 +86,7 @@ export function FinancialPage() {
   const navBtnBg = d ? '#222' : '#f0f0f2'
   const navBtnText = d ? '#f5f5f5' : '#1a1a1a'
 
+  const hasData = !!transactions?.length
 
   return (
     <AppLayout title="Financeiro">
@@ -100,118 +99,135 @@ export function FinancialPage() {
             <button onClick={nextMonth} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-2)', display: 'flex', alignItems: 'center' }} onMouseEnter={e => { e.currentTarget.style.background = navBtnBg; e.currentTarget.style.color = navBtnText }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-2)' }}><ChevronRight className="h-4 w-4" /></button>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setShowCategories(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: `1px solid ${borderColor}`, background: surfaceBg, color: 'var(--color-text-2)', cursor: 'pointer', transition: 'all 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = navBtnBg; e.currentTarget.style.borderColor = d ? '#444' : '#ccc'; e.currentTarget.style.color = navBtnText }} onMouseLeave={e => { e.currentTarget.style.background = surfaceBg; e.currentTarget.style.borderColor = borderColor; e.currentTarget.style.color = 'var(--color-text-2)' }}>
+            <button onClick={() => setShowCategories(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: `1px solid ${borderColor}`, background: surfaceBg, color: 'var(--color-text-2)', cursor: 'pointer', transition: 'all 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = navBtnBg; e.currentTarget.style.color = navBtnText }} onMouseLeave={e => { e.currentTarget.style.background = surfaceBg; e.currentTarget.style.color = 'var(--color-text-2)' }}>
               <Tag className="h-3.5 w-3.5" /> Categorias
             </button>
           </div>
         </div>
 
-        {/* Summary cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
-          {[
-            { label: 'Entradas hoje', value: formatCurrency(todayEntradas), icon: TrendingUp, iconColor: '#22c55e', iconBg: '#22c55e20', valueColor: '#22c55e' },
-            { label: 'Saídas hoje', value: formatCurrency(todaySaidas), icon: TrendingDown, iconColor: '#ef4444', iconBg: '#ef444420', valueColor: '#ef4444' },
-            { label: 'Saldo do mês', value: formatCurrency(saldo), icon: Wallet, iconColor: '#6366f1', iconBg: '#6366f120', valueColor: saldo >= 0 ? '#22c55e' : '#ef4444' },
-          ].map(s => (
-            <div key={s.label} style={{ padding: 20, border: `1px solid ${borderColor}`, borderRadius: 10, background: surfaceBg }}>
-              <div className="flex items-center justify-center rounded-[9px] mb-4" style={{ width: 38, height: 38, background: s.iconBg }}>
-                <s.icon className="h-[18px] w-[18px]" style={{ color: s.iconColor }} />
-              </div>
-              <p className="text-[34px] font-extrabold leading-none" style={{ color: s.valueColor }}>{s.value}</p>
-              <p className="text-[13px] mt-2" style={{ color: 'var(--color-text-2)' }}>{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Charts */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, marginBottom: 24 }}>
-          <div style={{ border: `1px solid ${borderColor}`, borderRadius: 10, padding: 20, background: surfaceBg }}>
-            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 16 }}>Entradas vs Saídas</h4>
-            <div style={{ height: 220 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailyData} barGap={2}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: tickColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
-                  <YAxis tick={{ fontSize: 10, fill: tickColor }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
-                  <Tooltip
-                    contentStyle={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 8, fontSize: 12, color: 'var(--color-text)' }}
-                    formatter={(v) => formatCurrency(Number(v))}
-                    labelStyle={{ color: 'var(--color-text-2)' }}
-                    cursor={{ fill: d ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.03)' }}
-                  />
-                  <Bar dataKey="entradas" fill="#22c55e" radius={[3, 3, 0, 0]} name="Entradas" />
-                  <Bar dataKey="saidas" fill="#ef4444" radius={[3, 3, 0, 0]} name="Saídas" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div style={{ border: `1px solid ${borderColor}`, borderRadius: 10, padding: 20, background: surfaceBg }}>
-            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 16 }}>Por categoria</h4>
-            <div style={{ height: 220 }}>
-              {categoryData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={categoryData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" nameKey="name" paddingAngle={3} strokeWidth={0}>
-                      {categoryData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                    </Pie>
-                    <Tooltip contentStyle={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 8, fontSize: 12, color: 'var(--color-text)' }} formatter={(v) => formatCurrency(Number(v))} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} formatter={(v: string) => <span style={{ color: 'var(--color-text-2)' }}>{v}</span>} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center gap-3">
-                  <Tag className="empty-icon" />
-                  <span className="text-[13px] text-text-3">Sem dados</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Transactions list */}
-        <div style={{ border: `1px solid ${borderColor}`, borderRadius: 10, background: surfaceBg, overflow: 'hidden' }}>
-          <div className="flex items-center justify-between" style={{ padding: '16px 20px', borderBottom: `1px solid ${borderColor}`, fontSize: 13, fontWeight: 600 }}>
-            <h4 className="text-text">Últimas transações</h4>
-            <span className="text-text-3 font-medium rounded-[10px] border px-2.5 py-0.5" style={{ borderColor, fontSize: 12 }}>{transactions?.length ?? 0}</span>
-          </div>
-          {isLoading ? (
-            <div className="p-10 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>
-          ) : !transactions?.length ? (
-            <div className="py-[60px] px-5 text-center flex flex-col items-center gap-3">
+        {isLoading ? (
+          <div className="flex justify-center p-10"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>
+        ) : !hasData ? (
+          /* Empty state */
+          <div className="rounded-[10px] border overflow-hidden" style={{ background: surfaceBg, borderColor }}>
+            <div className="py-[80px] px-5 text-center flex flex-col items-center gap-4">
               <PackageOpen className="empty-icon" />
-              <p className="text-[15px] font-semibold text-text-2">Nenhum registro ainda</p>
-              <p className="text-[13px] text-text-3">Use o botão + para criar sua primeira transação</p>
+              <div>
+                <p className="text-[17px] font-bold text-text">Nenhuma transação em {formatMonthYear(month, year)}</p>
+                <p className="text-[13px] text-text-3 mt-1">Use o botão + para registrar entradas e saídas</p>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button onClick={() => openModal('entrada')}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', fontSize: 13, fontWeight: 600, color: 'white', background: '#22c55e', border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 3px 10px rgba(34,197,94,0.25)' }}>
+                  <Plus className="h-4 w-4" /> Entrada
+                </button>
+                <button onClick={() => openModal('saida')}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', fontSize: 13, fontWeight: 600, color: 'white', background: '#ef4444', border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 3px 10px rgba(239,68,68,0.25)' }}>
+                  <Minus className="h-4 w-4" /> Saída
+                </button>
+              </div>
             </div>
-          ) : (
-            <div>
-              {transactions.slice(0, 20).map((tx, i) => (
-                <div key={tx.id} className={cn('flex items-center gap-3 hover:bg-surface-2 transition-colors duration-150 group')} style={{ padding: '14px 20px', borderBottom: i < Math.min(transactions.length, 20) - 1 ? `1px solid ${borderColor}` : 'none' }}>
-                  <div className="flex items-center justify-center rounded-[9px] shrink-0" style={{ width: 34, height: 34, background: tx.type === 'entrada' ? '#22c55e20' : '#ef444420' }}>
-                    {tx.type === 'entrada' ? <ArrowUpCircle className="h-4 w-4" style={{ color: '#22c55e' }} /> : <ArrowDownCircle className="h-4 w-4" style={{ color: '#ef4444' }} />}
+          </div>
+        ) : (
+          <>
+            {/* Summary cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+              {[
+                { label: `Entradas de ${formatMonthYear(month, year)}`, value: formatCurrency(monthEntradas), icon: TrendingUp, iconColor: '#22c55e', iconBg: '#22c55e20', valueColor: '#22c55e' },
+                { label: `Saídas de ${formatMonthYear(month, year)}`, value: formatCurrency(monthSaidas), icon: TrendingDown, iconColor: '#ef4444', iconBg: '#ef444420', valueColor: '#ef4444' },
+                { label: 'Saldo do mês', value: formatCurrency(saldo), icon: Wallet, iconColor: '#6366f1', iconBg: '#6366f120', valueColor: saldo >= 0 ? '#22c55e' : '#ef4444' },
+              ].map(s => (
+                <div key={s.label} style={{ padding: 20, border: `1px solid ${borderColor}`, borderRadius: 10, background: surfaceBg }}>
+                  <div className="flex items-center justify-center rounded-[9px] mb-4" style={{ width: 38, height: 38, background: s.iconBg }}>
+                    <s.icon className="h-[18px] w-[18px]" style={{ color: s.iconColor }} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-medium truncate text-text">{tx.description || (tx.type === 'entrada' ? 'Entrada' : 'Saída')}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {tx.category && (
-                        <span className="flex items-center gap-1 text-[11px] text-text-2">
-                          <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: tx.category.color }} />
-                          {tx.category.name}
-                        </span>
-                      )}
-                      <span className="text-[11px] text-text-3">{formatDate(tx.date)}</span>
-                    </div>
-                  </div>
-                  <p className={cn('text-[14px] font-bold tabular-nums whitespace-nowrap')} style={{ color: tx.type === 'entrada' ? '#22c55e' : '#ef4444' }}>
-                    {tx.type === 'entrada' ? '+' : '-'}{formatCurrency(Number(tx.amount))}
-                  </p>
-                  <button onClick={() => setDeleteConfirm(tx.id)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-[6px] text-text-3 hover:text-red hover:bg-surface-2 transition-all duration-150">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  <p className="text-[34px] font-extrabold leading-none" style={{ color: s.valueColor }}>{s.value}</p>
+                  <p className="text-[13px] mt-2" style={{ color: 'var(--color-text-2)' }}>{s.label}</p>
                 </div>
               ))}
             </div>
-          )}
-        </div>
+
+            {/* Charts */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, marginBottom: 24 }}>
+              <div style={{ border: `1px solid ${borderColor}`, borderRadius: 10, padding: 20, background: surfaceBg }}>
+                <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 16 }}>Entradas vs Saídas — {formatMonthYear(month, year)}</h4>
+                <div style={{ height: 220 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dailyData} barGap={2}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                      <XAxis dataKey="day" tick={{ fontSize: 10, fill: tickColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
+                      <YAxis tick={{ fontSize: 10, fill: tickColor }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
+                      <Tooltip
+                        contentStyle={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 8, fontSize: 12, color: 'var(--color-text)' }}
+                        formatter={(v) => formatCurrency(Number(v))}
+                        labelStyle={{ color: 'var(--color-text-2)' }}
+                        cursor={{ fill: d ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.03)' }}
+                      />
+                      <Bar dataKey="entradas" fill="#22c55e" radius={[3, 3, 0, 0]} name="Entradas" />
+                      <Bar dataKey="saidas" fill="#ef4444" radius={[3, 3, 0, 0]} name="Saídas" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div style={{ border: `1px solid ${borderColor}`, borderRadius: 10, padding: 20, background: surfaceBg }}>
+                <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 16 }}>Por categoria</h4>
+                <div style={{ height: 220 }}>
+                  {categoryData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={categoryData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" nameKey="name" paddingAngle={3} strokeWidth={0}>
+                          {categoryData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                        </Pie>
+                        <Tooltip contentStyle={{ background: surfaceBg, border: `1px solid ${borderColor}`, borderRadius: 8, fontSize: 12, color: 'var(--color-text)' }} formatter={(v) => formatCurrency(Number(v))} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} formatter={(v: string) => <span style={{ color: 'var(--color-text-2)' }}>{v}</span>} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center gap-3">
+                      <Tag className="empty-icon" />
+                      <span className="text-[13px] text-text-3">Sem categorias</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Transactions list */}
+            <div style={{ border: `1px solid ${borderColor}`, borderRadius: 10, background: surfaceBg, overflow: 'hidden' }}>
+              <div className="flex items-center justify-between" style={{ padding: '16px 20px', borderBottom: `1px solid ${borderColor}`, fontSize: 13, fontWeight: 600 }}>
+                <h4 className="text-text">Transações de {formatMonthYear(month, year)}</h4>
+                <span className="text-text-3 font-medium rounded-[10px] border px-2.5 py-0.5" style={{ borderColor, fontSize: 12 }}>{transactions?.length ?? 0}</span>
+              </div>
+              <div>
+                {transactions!.slice(0, 30).map((tx, i) => (
+                  <div key={tx.id} className={cn('flex items-center gap-3 hover:bg-surface-2 transition-colors duration-150 group')} style={{ padding: '14px 20px', borderBottom: i < Math.min(transactions!.length, 30) - 1 ? `1px solid ${borderColor}` : 'none' }}>
+                    <div className="flex items-center justify-center rounded-[9px] shrink-0" style={{ width: 34, height: 34, background: tx.type === 'entrada' ? '#22c55e20' : '#ef444420' }}>
+                      {tx.type === 'entrada' ? <ArrowUpCircle className="h-4 w-4" style={{ color: '#22c55e' }} /> : <ArrowDownCircle className="h-4 w-4" style={{ color: '#ef4444' }} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[14px] font-medium truncate text-text">{tx.description || (tx.type === 'entrada' ? 'Entrada' : 'Saída')}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {tx.category && (
+                          <span className="flex items-center gap-1 text-[11px] text-text-2">
+                            <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: tx.category.color }} />
+                            {tx.category.name}
+                          </span>
+                        )}
+                        <span className="text-[11px] text-text-3">{formatDate(tx.date)}</span>
+                      </div>
+                    </div>
+                    <p className={cn('text-[14px] font-bold tabular-nums whitespace-nowrap')} style={{ color: tx.type === 'entrada' ? '#22c55e' : '#ef4444' }}>
+                      {tx.type === 'entrada' ? '+' : '-'}{formatCurrency(Number(tx.amount))}
+                    </p>
+                    <button onClick={() => setDeleteConfirm(tx.id)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-[6px] text-text-3 hover:text-red hover:bg-surface-2 transition-all duration-150">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* FAB */}

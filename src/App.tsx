@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { AuthProvider, useAuth } from '@/hooks/useAuth'
-import { useTheme } from '@/hooks/useTheme'
+import { ThemeProvider } from '@/hooks/useTheme'
 import { DashboardPage } from '@/pages/Dashboard'
 import { FinancialPage } from '@/pages/Financial'
 import { RoutesPage } from '@/pages/Routes'
@@ -10,6 +10,7 @@ import { RouteDetailPage } from '@/pages/RouteDetail'
 import { UsersPage } from '@/pages/Users'
 import { LoginPage } from '@/pages/Login'
 import { PublicDeliveryPage } from '@/pages/PublicDelivery'
+import { SettingsPage } from '@/pages/Settings'
 import { Loader2 } from 'lucide-react'
 
 const queryClient = new QueryClient({
@@ -41,38 +42,35 @@ function ProtectedRoutes() {
       <Route path="/rotas" element={<RoutesPage />} />
       <Route path="/rotas/:id" element={<RouteDetailPage />} />
       <Route path="/usuarios" element={<UsersPage />} />
+      <Route path="/configuracoes" element={<SettingsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
 
-function ThemeInit() {
-  useTheme()
-  return null
-}
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <ThemeInit />
-          <Routes>
-            <Route path="/entrega/:token" element={<PublicDeliveryPage />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
-          </Routes>
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-foreground)',
-              },
-            }}
-          />
-        </AuthProvider>
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/entrega/:token" element={<PublicDeliveryPage />} />
+              <Route path="/*" element={<ProtectedRoutes />} />
+            </Routes>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-foreground)',
+                },
+              }}
+            />
+          </AuthProvider>
+        </BrowserRouter>
+      </ThemeProvider>
     </QueryClientProvider>
   )
 }
