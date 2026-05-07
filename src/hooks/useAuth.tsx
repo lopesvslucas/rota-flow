@@ -26,42 +26,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   async function fetchUserProfile(userId: string, email: string) {
-    // First check if there's an existing profile by auth ID
-    let { data: profile } = await supabase
+    console.log('[Auth] Fetching profile for:', email, 'uid:', userId)
+
+    // Try finding by ID first
+    let { data: profile, error: profileError } = await supabase
       .from('users')
       .select('*')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
+
+    console.log('[Auth] Profile by ID:', profile ? 'FOUND' : 'NOT FOUND', profileError?.message || '')
 
     if (!profile) {
-      // Check if there's a pending invite by email
-      const { data: invitedProfile } = await supabase
+      // Try by email
+      const { data: emailProfile } = await supabase
         .from('users')
         .select('*')
         .eq('email', email)
-        .single()
+        .maybeSingle()
 
-      if (invitedProfile && invitedProfile.id !== userId) {
-        // Update the invited profile with the real auth user ID
-        const { data: updated } = await supabase
-          .from('users')
-          .update({ id: userId })
-          .eq('email', email)
-          .select()
-          .single()
+      console.log('[Auth] Profile by email:', emailProfile ? 'FOUND' : 'NOT FOUND')
 
-        profile = updated
-      } else if (invitedProfile) {
-        profile = invitedProfile
+      if (emailProfile) {
+        if (emailProfile.id !== userId) {
+          // Update invited profile with real auth ID
+          const { data: updated } = await supabase
+            .from('users')
+            .update({ id: userId })
+            .eq('email', email)
+            .select()
+            .single()
+          profile = updated
+        } else {
+          profile = emailProfile
+        }
       }
     }
 
-    // If no profile exists, check if it's the developer email
+    // If no profile, auto-create for dev or reject
     if (!profile) {
       if (email === DEV_EMAIL) {
+        console.log('[Auth] Auto-creating dev profile')
         profile = await autoCreateDevProfile(userId, email)
       } else {
-        // Not invited - sign out
+        console.log('[Auth] Not invited, signing out')
         await supabase.auth.signOut()
         setSession(null)
         setUser(null)
@@ -72,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (profile) {
+      console.log('[Auth] Setting user:', profile.email, 'company:', profile.company_id)
       setUser(profile)
 
       if (profile.company_id) {
@@ -79,8 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .from('companies')
           .select('*')
           .eq('id', profile.company_id)
-          .single()
+          .maybeSingle()
 
+        console.log('[Auth] Company:', comp ? comp.name : 'NOT FOUND')
         if (comp) setCompany(comp)
       }
     }
@@ -93,7 +103,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select()
       .single()
 
-    if (compError || !comp) return null
+    if (compError || !comp) {
+      console.error('[Auth] Failed to create company:', compError?.message)
+      return null
+    }
 
     const { data: profile, error: userError } = await supabase
       .from('users')
@@ -108,7 +121,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select()
       .single()
 
-    if (userError || !profile) return null
+    if (userError || !profile) {
+      console.error('[Auth] Failed to create profile:', userError?.message)
+      return null
+    }
 
     setCompany(comp)
     return profile
@@ -150,12 +166,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signUp(email: string, password: string) {
-    // Check if this email is invited or is the dev email
     const { data: existingUser } = await supabase
       .from('users')
       .select('email')
       .eq('email', email)
-      .single()
+      .maybeSingle()
 
     if (!existingUser && email !== DEV_EMAIL) {
       return { error: new Error('Este e-mail não foi convidado. Solicite um convite ao administrador.') }
