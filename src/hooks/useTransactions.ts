@@ -90,15 +90,22 @@ export function useCreateTransaction() {
       category_id?: string
       date: string
     }) => {
-      if (!company || !user) throw new Error('Not authenticated')
+      console.log('[CreateTx] company:', company?.id, 'user:', user?.id)
+      if (!company || !user) throw new Error('Sessão expirada. Faça logout e login novamente.')
 
-      const { error } = await supabase.from('transactions').insert({
+      const payload = {
         ...data,
         company_id: company.id,
         created_by: user.id,
-      })
+      }
+      console.log('[CreateTx] Inserting:', payload)
 
-      if (error) throw error
+      const { error } = await supabase.from('transactions').insert(payload)
+
+      if (error) {
+        console.error('[CreateTx] Supabase error:', error)
+        throw new Error(error.message)
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })

@@ -42,7 +42,10 @@ export function TransactionModal({ type, categories, onClose }: TransactionModal
       await createTransaction.mutateAsync({ type, description: form.description || undefined, amount: Number(form.amount), date: form.date, category_id: form.category_id || undefined })
       toast.success(`${type === 'entrada' ? 'Entrada' : 'Saída'} registrada!`)
       onClose()
-    } catch { toast.error('Erro ao criar transação') }
+    } catch (err: any) { 
+      console.error('[Transaction] Error:', err)
+      toast.error(err?.message || 'Erro ao criar transação') 
+    }
   }
 
   return (
