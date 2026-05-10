@@ -134,10 +134,31 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
     if (password.length < 6) { toast.error('Senha deve ter pelo menos 6 caracteres'); return }
     setLoading(true)
     try {
-      const placeholderId = crypto.randomUUID()
+      // Create a secondary client to sign up the new user without logging out the current admin
+      const { createClient } = await import('@supabase/supabase-js')
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      const adminAuthClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+          detectSessionInUrl: false
+        }
+      })
 
+      // Sign up the new user
+      const { data: authData, error: authError } = await adminAuthClient.auth.signUp({
+        email,
+        password,
+      })
+
+      if (authError) throw authError
+      if (!authData.user) throw new Error('Não foi possível criar o usuário de autenticação')
+
+      // Insert into public.users with the real auth user ID
       const { error } = await supabase.from('users').insert({
-        id: placeholderId,
+        id: authData.user.id,
         company_id: companyId,
         email,
         name: name.trim(),
@@ -145,10 +166,11 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
         role: 'admin',
         permissions: { financeiro: true, rotas: true, usuarios: true },
       })
+      
       if (error) throw error
 
       queryClient.invalidateQueries({ queryKey: ['company-users'] })
-      toast.success(`Convite criado! O usuário deve se cadastrar com o email: ${email}`)
+      toast.success(`Usuário criado com sucesso! Ele já pode acessar com o email: ${email}`)
       onClose()
     } catch (err: any) { toast.error(err?.message || 'Erro ao convidar') }
     setLoading(false)
