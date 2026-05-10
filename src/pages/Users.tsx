@@ -167,7 +167,12 @@ function InviteModal({ companyId, onClose }: { companyId: string; onClose: () =>
         permissions: { financeiro: true, rotas: true, usuarios: true },
       })
       
-      if (error) throw error
+      if (error) {
+        if (error.message?.includes('users_id_fkey')) {
+          throw new Error('Este email já está em uso por outro usuário no sistema.')
+        }
+        throw error
+      }
 
       queryClient.invalidateQueries({ queryKey: ['company-users'] })
       toast.success(`Usuário criado com sucesso! Ele já pode acessar com o email: ${email}`)
